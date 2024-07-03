@@ -76,13 +76,11 @@ int main() {
      .addRow({3.0, 4.0})
      .addRow({5.0, 6.0});
 
-    A.print();
-
     Matrix<double> B;
     B.addRow({7.0, 8.0, 9.0})
      .addRow({10.0, 11.0, 12.0});
 
-    Matrix<double> C = B * A;
+    Matrix<double> C =  A * B;
 
     C.print();
 

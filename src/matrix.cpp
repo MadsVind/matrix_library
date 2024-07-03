@@ -35,6 +35,19 @@ std::vector<T> Matrix<T>::operator*(const std::vector<T>& vec) const {
     return product;
 }
 
+template <typename T>
+Matrix<T> Matrix<T>::operator*(const T& scalar) const  {
+    size_t cols = colSize();
+    size_t rows = rowSize();
+
+    Matrix<T> product(rows, cols);
+    for (size_t i = 0; i < rows; ++i) {
+        for (size_t j = 0; j < cols; ++j) {
+            product[i][j] = scalar * getElement(i, j); 
+        }
+    }
+    return product;
+}
 
 template <typename T>
 std::vector<T> operator*(const std::vector<T>& vec, const Matrix<T>& B)  {
@@ -44,6 +57,12 @@ std::vector<T> operator*(const std::vector<T>& vec, const Matrix<T>& B)  {
     std::vector<T> product = productMatrix.getCol(0);
     return product;
 }
+
+template <typename T>
+Matrix<T> operator*(const T& scalar, const Matrix<T>& B)  {
+    return B * scalar;
+}
+
 
 // For non-const objects
 template <typename T>

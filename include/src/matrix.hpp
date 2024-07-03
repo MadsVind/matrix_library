@@ -67,9 +67,9 @@ public:
 };
 
 template <typename T>
-std::vector<T>& operator*(const std::vector<T>& vec, const Matrix<T>& B);
+std::vector<T>& operator*(const std::vector<T>& vec, const Matrix<T>& B); // !!! DOES NOT WORK
 
-extern template class Matrix<int>;
-extern template class Matrix<float>;
-extern template class Matrix<double>;
+template <typename T>
+Matrix<T>  operator*(const T& scalar, const Matrix<T>& B); // !!! DOES NOT WORK
+
 #endif
