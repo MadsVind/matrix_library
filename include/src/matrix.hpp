@@ -11,38 +11,50 @@ class Matrix {
 private:
     /* data */
     std::vector<std::vector<T>> data;
-    int rows;
-    int cols;
+    int rowAmount;
+    int colAmount;
     
 public:
-    Matrix() : rows(0), cols(0) {}
-    Matrix(int rows, int cols, T value) : rows(rows), cols(cols) {
-        data.resize(rows);
-        for (int i = 0; i < rows; i++)
-        {
-            data[i].resize(cols, value);
+    Matrix() : rowAmount(0), colAmount(0) {}
+    Matrix(int rowAmount, int colAmount, T value) : rowAmount(rowAmount), colAmount(colAmount) {
+        data.resize(rowAmount);
+        for (int i = 0; i < rowAmount; i++) {
+            data[i].resize(colAmount, value);
         }
     }
 
-    Matrix(int rows, int cols) : rows(rows), cols(cols) {
-        data.resize(rows);
-        for (int i = 0; i < rows; i++)
-        {
-            data[i].resize(cols);
+    Matrix(int rowAmount, int colAmount) : rowAmount(rowAmount), colAmount(colAmount) {
+        data.resize(rowAmount);
+        for (int i = 0; i < rowAmount; i++) {
+            data[i].resize(colAmount);
         }
     }
 
-    size_t rowSize() const { return rows; }
+    Matrix(const Matrix<T>& x) : rowAmount(x.rowAmount), colAmount(x.colAmount), data(x.data) {}
 
-    size_t colSize() const { return cols; }
+    static Matrix<T> getIdentity(size_t size);
+
+    size_t getRowAmount() const { return rowAmount; }
+
+    size_t getColAmount() const { return colAmount; }
 
     bool operator==(const Matrix<T>& B) const;
 
-    Matrix<T> operator*(const Matrix<T>& B) const;
+    Matrix<T> operator-(const Matrix<T>& B) const;
+    Matrix<T> operator+(const Matrix<T>& B) const;
 
-    std::vector<T> operator*(const std::vector<T>& vec) const;
+    Matrix<T> pow(const T& exponent) const;
+    Matrix<T> operator/(const Matrix<T>& B) const;
     
+    Matrix<T> operator*(const Matrix<T>& B) const;
     Matrix<T> operator*(const T& scalar) const;
+    std::vector<T> operator*(const std::vector<T>& vec) const;
+
+    // Unary
+    Matrix<T> inverse() const;
+    Matrix<T> transpose() const;
+    Matrix<T> operator-() const;
+
 
     std::vector<T>& operator[](int index);
 
@@ -50,6 +62,7 @@ public:
     const std::vector<T>& operator[](int index) const;
 
     std::vector<T> getRow(size_t rowIndex) const;
+    std::vector<T> getCol(size_t colIndex) const;
 
     const T& getElement(size_t row, size_t col) const;
 
@@ -64,6 +77,9 @@ public:
     void print() const;
     
     bool isMatrixSquare() const;
+
+    bool areMatricesSameSize(const Matrix<T>& other) const;
+
 };
 
 template <typename T>
@@ -72,4 +88,6 @@ std::vector<T>& operator*(const std::vector<T>& vec, const Matrix<T>& B); // !!!
 template <typename T>
 Matrix<T>  operator*(const T& scalar, const Matrix<T>& B); // !!! DOES NOT WORK
 
+template <typename T>
+Matrix<T> operator%(const T& scalar, const Matrix<T>& B); // !!! DOES NOT WORK
 #endif

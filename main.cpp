@@ -64,7 +64,7 @@ std::vector<float> sigmoid(std::vector<float> input) {
 
 
 int main() {
-    srand(time(NULL));
+    //srand(time(NULL));
 
     //std::vector<int> layers = {3, 5, 6, 4, 1}; 
     //Weights weights = createWeights(layers);
@@ -80,9 +80,19 @@ int main() {
     B.addRow({7.0, 8.0, 9.0})
      .addRow({10.0, 11.0, 12.0});
 
-    Matrix<double> C =  A * B;
+    Matrix<double> C;
+    C.addRow({1.0, 2.0, 3.0})
+     .addRow({4.0, 5.0, 6.0});
 
-    C.print();
+    Matrix<double> D = B.transpose();
+
+    Matrix<double> I;
+    I.addRow({7.0, 11.0, 2.0})
+     .addRow({13.0, 5.0, 10.0})
+     .addRow({12.0, 3.0, 6.0});
+
+    I.inverse().print();
+    //D.print();
 
     return 0;
 }
