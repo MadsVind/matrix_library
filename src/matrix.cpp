@@ -99,6 +99,72 @@ Matrix<T> Matrix<T>::transpose() const {
     return product;
 }
 
+
+
+template <typename T>
+typename Matrix<T>::Plu Matrix<T>::decompPLU() const {
+    Matrix<T> perm = getIdentity(rowAmount);
+    Matrix<T> lower = Matrix<T>(perm);
+    Matrix<T> upper = Matrix<T>(*this);
+
+    size_t rowAmount = getRowAmount();
+    size_t colAmount = getColAmount();
+    
+    size_t permutationAmount = 0;
+    int pivotCol = 0;
+    for (int i = 0; i < rowAmount; ++i) { // Find pivot in every row
+        int largestPivotRow = -1;
+        
+        for (int j = pivotCol; j < colAmount; ++j) { // Go to next column if column has no pivot
+            for (int k = i; k < rowAmount; ++k) { 
+
+                T currentElement = upper[k][j];
+                if ((largestPivotRow == -1 && currentElement != 0) || 
+                    (largestPivotRow != -1 && currentElement > std::abs(upper[largestPivotRow][j]))) {
+                        largestPivotRow = k;
+                }
+            }
+            pivotCol = j;
+            if (largestPivotRow != -1) break; // no pivot only zeroes if this is the case
+        }
+        if (pivotCol > rowAmount) break;
+        
+        if (largestPivotRow != i) {
+            ++permutationAmount;
+            upper.swapRow(i, largestPivotRow);
+            perm.swapRow(i, largestPivotRow);
+            lower.swapRow(i, largestPivotRow);
+            lower.swapCol(i, largestPivotRow);  // this is a thing which is done :D i don't get why.
+        }
+
+        T zero = static_cast<T>(0);
+        for (int k = i + 1; k < rowAmount; ++k) {
+            if (upper[k][pivotCol] == 0) continue;
+            T scalar = upper[k][pivotCol] / upper[i][pivotCol]; 
+            lower[k][pivotCol] = scalar;  // sometimes this should be minus other time not?!?!?
+            for (int l = 0; l < colAmount; ++l) {
+                upper[k][l] -= scalar * upper[i][l];
+            }
+        }
+    }
+    return Matrix<T>::Plu(perm, lower, upper, permutationAmount);
+}
+
+
+
+template <typename T>
+T Matrix<T>::determinant() const {
+    Matrix<T>::Plu plu = decompPLU();
+    Matrix<T> upper = plu.upper;
+    size_t size = upper.getRowAmount();
+    T determinant = upper[0][0];
+    for (int i = 1; i < size; ++i) {
+        determinant *= upper[i][i];
+    }
+    if (plu.permutationAmount % 2 != 0) determinant *= -1;
+    return determinant;
+}
+
 // get 1 then clear column (ex. get 1 in in 1st row 1st col, now clear rest of 1st col to 0, repeat for 2nd row 2nd col ect.)
 template <typename T>
 Matrix<T> Matrix<T>::inverse() const {
@@ -107,13 +173,16 @@ Matrix<T> Matrix<T>::inverse() const {
         return Matrix<T>();
     }
 
-    // check if matrix has determinant.
+    if (determinant() == 0) {
+        std::cerr << "Can not get inverse of matrix with determinant of 0 \n";
+        return Matrix<T>();
+    }
 
     size_t size = getRowAmount();
     Matrix<T> iden = getIdentity(size);
     Matrix<T> org(*this);
 
-    
+
     for (int i = 0; i < size; ++i) {
         T scalar = org[i][i];
         for (int j = 0; j < size; ++j) { 
@@ -145,7 +214,7 @@ Matrix<T> Matrix<T>::operator*(const Matrix<T>& B) const {
         for (int j = 0; j < B.getColAmount(); ++j) {
             T sum = T(); 
             for (int k = 0; k < getColAmount(); ++k) { 
-                sum += data[i][j] * B[i][j];
+                sum += data[k][j] * B[i][k];
             }
             product[i][j] = sum;
         }
@@ -192,8 +261,7 @@ Matrix<T> operator*(const T& scalar, const Matrix<T>& B)  {
 }
 
 //Matrix<T> pow(const T& exponent) const;
-//
-//Matrix<T> operator/(const Matrix<T>& B) const;
+
 
 // For non-const objects
 template <typename T>
@@ -251,6 +319,7 @@ Matrix<T>& Matrix<T>::addRow(std::vector<T> row) {
     return *this;
 }
 
+
 template <typename T>
 Matrix<T>& Matrix<T>::addCol(std::vector<T> col) {
     if (col.size() != rowAmount && rowAmount != 0) throw std::runtime_error("Invalid row size");
@@ -261,6 +330,46 @@ Matrix<T>& Matrix<T>::addCol(std::vector<T> col) {
         data[i].push_back(col[i]);
     }
     colAmount++;
+    return *this;
+}
+
+template <typename T>
+Matrix<T>& Matrix<T>::setRow(size_t rowIndex, std::vector<T> row) {
+    if (rowIndex >= rowAmount) throw std::runtime_error("Tried to set non existing row");
+    if (row.size() != colAmount) throw std::runtime_error("Invalid row size");
+    for (int i = 0; i < colAmount; ++i) {
+        data[rowIndex][i] = row[i];
+    }
+
+    return *this;
+}
+
+template <typename T>
+Matrix<T>& Matrix<T>::setCol(size_t colIndex, std::vector<T> col) {
+    if (colIndex >= colAmount) throw std::runtime_error("Tried to set non existing col");
+    if (col.size() != rowAmount) throw std::runtime_error("Invalid col size");
+    for (int i = 0; i < rowAmount; ++i) {
+        data[i][colIndex] = col[i];
+    }
+    return *this;
+}
+
+// if you swap the same row with the same row you deserve bad performance
+template <typename T>
+Matrix<T>& Matrix<T>::swapRow(size_t rowA, size_t rowB) { 
+    if (rowA > rowAmount || rowB > rowAmount) throw std::runtime_error("Tried to swap non existing row");
+    std::vector<T> tempRow = data[rowA];
+    (*this).setRow(rowA, data[rowB]);
+    (*this).setRow(rowB, tempRow);
+    return *this;
+}
+
+template <typename T>
+ Matrix<T>& Matrix<T>::swapCol(size_t colA, size_t colB) {
+     if (colA > colAmount || colB > colAmount) throw std::runtime_error("Tried to swap non existing col");
+    std::vector<T> tempCol = (*this).getCol(colA);
+    (*this).setCol(colA, (*this).getCol(colB));
+    (*this).setCol(colB, tempCol);
     return *this;
 }
 

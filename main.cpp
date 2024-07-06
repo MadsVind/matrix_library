@@ -85,14 +85,33 @@ int main() {
      .addRow({4.0, 5.0, 6.0});
 
     Matrix<double> D = B.transpose();
-
-    Matrix<double> I;
-    I.addRow({7.0, 11.0, 2.0})
-     .addRow({13.0, 5.0, 10.0})
-     .addRow({12.0, 3.0, 6.0});
-
-    I.inverse().print();
     //D.print();
 
+    Matrix<double> I;
+    I.addRow({0, 1.0, -2.0})
+     .addRow({1.0, 0.0, 2.0})
+     .addRow({3.0, -2.0, 2.0});
+
+//    Matrix<double> I;
+//    I.addRow({0.0001, 1.0})
+//     .addRow({1.0, 1.00});
+
+
+
+    auto result = I.decompPLU();
+    // Accessing elements
+    Matrix<double> P = result.permutation; // Gets the first element of the tuple
+    Matrix<double> L = result.lower; // Gets the second element of the tuple
+    Matrix<double> U = result.upper; 
+
+    //(I * P).print();
+    //std::cout << "\n";
+    //P.print();
+    //std::cout << "\n";
+    //L.print();
+    //std::cout << "\n";
+    //U.print();
+
+    std::cout << I.determinant() << "\n";
     return 0;
 }

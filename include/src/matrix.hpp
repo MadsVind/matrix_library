@@ -4,6 +4,7 @@
 #include <iostream>
 #include <vector>
 #include <string>
+#include <tuple>
 
 template <typename T>
 class Matrix {
@@ -32,6 +33,16 @@ public:
 
     Matrix(const Matrix<T>& x) : rowAmount(x.rowAmount), colAmount(x.colAmount), data(x.data) {}
 
+    class Plu {
+       public: 
+        Plu(Matrix<T> permutation, Matrix<T> lower, Matrix<T> upper, size_t permutationAmount) 
+            : permutation(permutation), lower(lower), upper(upper), permutationAmount(permutationAmount) {}
+        const Matrix<T> permutation;
+        const Matrix<T> lower;
+        const Matrix<T> upper;
+        const size_t permutationAmount;
+    };
+
     static Matrix<T> getIdentity(size_t size);
 
     size_t getRowAmount() const { return rowAmount; }
@@ -44,17 +55,18 @@ public:
     Matrix<T> operator+(const Matrix<T>& B) const;
 
     Matrix<T> pow(const T& exponent) const;
-    Matrix<T> operator/(const Matrix<T>& B) const;
     
     Matrix<T> operator*(const Matrix<T>& B) const;
     Matrix<T> operator*(const T& scalar) const;
     std::vector<T> operator*(const std::vector<T>& vec) const;
 
     // Unary
+    T determinant() const;
     Matrix<T> inverse() const;
     Matrix<T> transpose() const;
     Matrix<T> operator-() const;
 
+    Matrix<T>::Plu decompPLU() const;
 
     std::vector<T>& operator[](int index);
 
@@ -71,8 +83,13 @@ public:
     void assignElement(size_t row, size_t col, T el);
     
     Matrix<T>& addRow(std::vector<T> row);
-
     Matrix<T>& addCol(std::vector<T> col);
+
+    Matrix<T>& setRow(size_t rowIndex, std::vector<T> row);
+    Matrix<T>& setCol(size_t colIndex, std::vector<T> col);
+
+    Matrix<T>& swapRow(size_t rowA, size_t rowB);
+    Matrix<T>& swapCol(size_t colA, size_t colB);
 
     void print() const;
     
