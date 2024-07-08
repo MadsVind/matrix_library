@@ -98,20 +98,61 @@ int main() {
 
 
 
-    auto result = I.decompPLU();
-    // Accessing elements
-    Matrix<double> P = result.permutation; // Gets the first element of the tuple
-    Matrix<double> L = result.lower; // Gets the second element of the tuple
-    Matrix<double> U = result.upper; 
+    //auto result = I.decompPLU();
+    //// Accessing elements
+    //Matrix<double> P = result.permutation; // Gets the first element of the tuple
+    //Matrix<double> L = result.lower; // Gets the second element of the tuple
+    //Matrix<double> U = result.upper; 
 
-    //(I * P).print();
-    //std::cout << "\n";
-    //P.print();
-    //std::cout << "\n";
-    //L.print();
-    //std::cout << "\n";
-    //U.print();
+//    Matrix<double> Å;
+//    Å.addRow({1, 3})
+//     .addRow({1, -1});
+//
+//    auto result = Å.decompQR();
+//    //// Accessing elements
+//    Matrix<double> ortho = result.ortogonal; // Gets the first element of the tuple
+//    Matrix<double> upper = result.upper; // Gets the second element of the tuple
+//
+//    ortho.print();
+//    std::cout << "\n";
+//    upper.print();
 
-    std::cout << I.determinant() << "\n";
+    Matrix<double> Z;
+    Z.addRow({1, -1})
+     .addRow({2, 4});
+
+    Matrix<double> A_IVal = (Z - (Matrix<double>::getIdentity(Z.getRowAmount()) * 3));
+    A_IVal.print();
+    A_IVal.ref().print();
+
+    std::cout << "\n";
+    A_IVal = (Z - (Matrix<double>::getIdentity(Z.getRowAmount()) * 2));
+    A_IVal.print();
+    A_IVal.ref().print();
+
+    std::cout << "\n\n\n";
+
+
+    Matrix<double> Y;
+    Y.addRow({1, -1})
+     .addRow({2, 4});
+
+    auto eigen = Y.calcEigen(0.00000000000000000001);
+    std::vector<double> valueVec = eigen.valueVec;
+    std::vector<std::vector<double>> vectorVec = eigen.vectorVec;
+
+    for (int i = 0; i < valueVec.size(); ++i) {
+        std::cout << "Eigen -value: " << valueVec[i];
+        std::vector<double> vector = vectorVec[i];
+        std::cout << " -vector: ";
+        for (int j = 0; j < vector.size(); ++j) {
+           std::cout << vector[j] << " ";
+        }
+        std::cout << "\n";
+    }
+
+
+
+    //std::cout << I.determinant() << "\n";
     return 0;
 }

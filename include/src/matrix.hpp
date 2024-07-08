@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <tuple>
+#include <cmath>
 
 template <typename T>
 class Matrix {
@@ -43,6 +44,22 @@ public:
         const size_t permutationAmount;
     };
 
+    class Eigen {
+       public: 
+        Eigen(std::vector<std::vector<T>> vectorVec, std::vector<T> valueVec) 
+            : vectorVec(vectorVec), valueVec(valueVec) {}
+        const std::vector<std::vector<T>> vectorVec;
+        const std::vector<T> valueVec;
+    };
+
+    class Qr {
+       public: 
+        Qr(Matrix<T> ortogonal, Matrix<T> upper) 
+            : ortogonal(ortogonal), upper(upper) {}
+        const Matrix<T> ortogonal;
+        const Matrix<T> upper;
+    };
+
     static Matrix<T> getIdentity(size_t size);
 
     size_t getRowAmount() const { return rowAmount; }
@@ -66,6 +83,10 @@ public:
     Matrix<T> transpose() const;
     Matrix<T> operator-() const;
 
+    Matrix<T> ref(double tolerance = std::numeric_limits<T>::min()) const;
+    Matrix<T> rref(double tolerance = std::numeric_limits<T>::min()) const;
+    Matrix<T>::Eigen calcEigen(double tolerance = 0.00000000000000000001) const; // magick number for tolerance to work apperently. !!! Test this
+    Matrix<T>::Qr decompQR() const;
     Matrix<T>::Plu decompPLU() const;
 
     std::vector<T>& operator[](int index);
@@ -93,9 +114,13 @@ public:
 
     void print() const;
     
-    bool isMatrixSquare() const;
+    bool isSquare() const;
 
-    bool areMatricesSameSize(const Matrix<T>& other) const;
+    bool isSameSize(const Matrix<T>& other) const;
+
+    bool isUpperTriangular(double tolerance = std::numeric_limits<T>::min()) const;
+
+    bool isLowerTriangular(double tolerance = std::numeric_limits<T>::min()) const;
 
 };
 

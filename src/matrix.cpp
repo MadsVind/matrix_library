@@ -12,18 +12,42 @@ Matrix<T> Matrix<T>::getIdentity(size_t size) {
 }
 
 template <typename T>
-bool Matrix<T>::isMatrixSquare() const {
+bool Matrix<T>::isSquare() const {
     return getRowAmount() > 0 && getRowAmount() == getColAmount(); 
 }
 
 template <typename T>
-bool Matrix<T>::areMatricesSameSize(const Matrix<T>& B) const {
+bool Matrix<T>::isSameSize(const Matrix<T>& B) const {
     return getRowAmount() == B.getRowAmount() && getColAmount() == B.getColAmount();
 }
 
+
+template <typename T>
+bool Matrix<T>::isUpperTriangular(double tolerance) const {
+    if (!isSquare()) return false;
+    size_t size = getRowAmount();
+    for (size_t i = 1; i < size; ++i) {
+        for (size_t j = 0; j < i; ++j) {
+            if (std::abs(data[i][j]) > tolerance) return false;
+        }
+    }
+    return true;
+}
+
+template <typename T>
+bool Matrix<T>::isLowerTriangular(double tolerance) const {
+    if (!isSquare()) return false;
+    size_t size = getRowAmount();
+    for (size_t i = 1; i < size; ++i) {
+        for (size_t j = 0; j < i; ++j) {
+            if (std::abs(data[j][i]) > tolerance) return false;
+        }
+    }
+    return true;
+}
 template <typename T>
 bool Matrix<T>::operator==(const Matrix<T>& B) const {
-    if (!areMatricesSameSize(B)) return false;
+    if (!isSameSize(B)) return false;
     size_t rowAmount = getRowAmount();
     size_t colAmount = getColAmount();
 
@@ -38,7 +62,7 @@ bool Matrix<T>::operator==(const Matrix<T>& B) const {
 
 template <typename T>
 Matrix<T> Matrix<T>::operator+(const Matrix<T>& B) const {
-    if (!areMatricesSameSize(B)) {
+    if (!isSameSize(B)) {
         std::cerr << "Matrices was not of matching sizes and can therefore no be added together";
         return Matrix<T>();
     }
@@ -56,7 +80,7 @@ Matrix<T> Matrix<T>::operator+(const Matrix<T>& B) const {
 
 template <typename T>
 Matrix<T> Matrix<T>::operator-(const Matrix<T>& B) const {
-    if (!areMatricesSameSize(B)) {
+    if (!isSameSize(B)) {
         std::cerr << "Matrices was not of matching sizes and can therefore no be added together";
         return Matrix<T>();
     }
@@ -99,7 +123,178 @@ Matrix<T> Matrix<T>::transpose() const {
     return product;
 }
 
+template <typename T>
+Matrix<T> Matrix<T>::ref(double tolerance) const {
+    Matrix<T> ref(*this);
 
+    size_t rowAmount = getRowAmount();
+    size_t colAmount = getColAmount();
+    
+    T zero = static_cast<T>(0);
+    int pivotCol = 0;
+    for (int i = 0; i < rowAmount; ++i) { // Find pivot in every row
+        int largestPivotRow = -1;
+        for (int j = pivotCol; j < colAmount; ++j) { // Go to next column if column has no pivot
+            for (int k = i; k < rowAmount; ++k) { 
+                T currentElement = std::abs(ref[k][j]);
+                if ((largestPivotRow == -1 && currentElement > tolerance)) {    
+                    largestPivotRow = k;
+                }
+                if (largestPivotRow != -1 && currentElement > std::abs(ref[largestPivotRow][j])) largestPivotRow = k;
+            }
+            pivotCol = j;
+            if (largestPivotRow != -1) break; // no pivot only zeroes if this is the case
+        }
+
+        if (pivotCol > rowAmount) break;
+        if (largestPivotRow == -1) continue;
+        if (largestPivotRow != i) ref.swapRow(i, largestPivotRow);
+        T scalar = ref[i][pivotCol];
+
+        for (int j = 0; j < colAmount; ++j) { 
+            ref[i][j] = ref[i][j] / scalar;
+        }
+        
+
+        for (int j = i + 1; j < rowAmount; ++j) {
+            T scalar = ref[j][i]; 
+            for (int k = 0; k < colAmount; ++k) {
+                ref[j][k] -= scalar * ref[i][k];
+            }
+        }
+    }
+    return ref;
+}
+
+template <typename T>
+Matrix<T> Matrix<T>::rref(double tolerance) const {
+    Matrix<T> rref((*this).ref());
+
+    size_t rowAmount = getRowAmount();
+    size_t colAmount = getColAmount();
+    
+    int pivotCol = 0;
+    for (int i = 0; i < rowAmount; ++i) { // Find pivot in every row
+        for (int j = 0; j < rowAmount; ++j) {
+            if (i == j) continue;
+            T scalar = rref[j][i]; 
+            for (int k = i; k < colAmount; ++k) {
+                rref[j][k] -= scalar * rref[i][k];
+            }
+        }
+    }
+    return rref;
+}
+
+template <typename T>
+std::vector<T> backSubstitution(Matrix<T> A, double tolerance) { // !!! does not work fix
+    size_t rowAmount = A.getRowAmount();
+    std::vector<T> res(rowAmount);
+    for (int i = rowAmount - 1; 0 <= i; --i) {
+        if (std::abs(A[i][i]) < tolerance) {
+            res[i] = static_cast<T>(1); 
+            continue;
+        }
+        int rowAmountIndex = (rowAmount - 1);
+        int varAmount =  rowAmountIndex - i;
+        T varSum = static_cast<T>(0);
+        for (int j = 0; j < varAmount; ++j) {
+            varSum += A[i][ rowAmountIndex - j] * res[rowAmountIndex - j];
+        }
+        res[i] = -varSum;
+    }
+    return res;
+}
+
+template <typename T>
+typename Matrix<T>::Eigen Matrix<T>::calcEigen(double tolerance) const {
+    tolerance * 10;
+    if (!isSquare()) {
+        std::cerr << "Can not calculate Eigen value and vector of non square matrix\n";
+        return Matrix<T>::Eigen(std::vector<std::vector<T>>(), std::vector<T>());
+    }
+    Matrix<T> A = Matrix<T>(*this);
+    do {
+        Matrix<T>::Qr qr = A.decompQR();
+
+        A = qr.ortogonal * qr.upper;
+
+    } while (!A.isUpperTriangular(tolerance * 0.1)); // nessesary for tolerance to work kinda
+
+    std::vector<T> eigenValues;
+    size_t colAmount = A.getColAmount();
+    size_t rowAmount = A.getRowAmount();
+
+    for (size_t i = 0; i < rowAmount; ++i) {
+        T rounded = std::round(A[i][i] / tolerance);
+        eigenValues.push_back(rounded * tolerance);
+    }
+    A = Matrix<T>(*this); // think this is the thing which needed to be done back to drawing board
+ 
+    Matrix<T> I = getIdentity(rowAmount);
+    std::vector<std::vector<T>> eigenVectors;
+    size_t valueAmount = eigenValues.size(); // probably should just be row amount
+    for (size_t i = 0; i < valueAmount; ++i) {
+        Matrix<T> linMatrix = A - (I * eigenValues[i]);
+        linMatrix = linMatrix.ref(tolerance);
+        eigenVectors.push_back(backSubstitution(linMatrix, tolerance));
+    }
+
+    return Matrix<T>::Eigen(eigenVectors, eigenValues); // !!!remember to change
+}
+
+template <typename T>
+typename Matrix<T>::Qr Matrix<T>::decompQR() const {
+    Matrix<T> orthogonal = Matrix<T>(rowAmount, rowAmount);
+    Matrix<T> upper = Matrix<T>(rowAmount, colAmount, static_cast<T>(0));
+
+    size_t rowAmount = getRowAmount();
+    size_t colAmount = getColAmount();
+
+    for (int i = 0; i < rowAmount; ++i) {
+        std::vector<T> a = (*this).getCol(i);
+        std::vector<T> scalars;
+
+        // Calculate the scalars of the new orthogonal vector a (alpha)
+        // These scalars are also the non digonal entries in upper
+        for (int j = 0; j < i; ++j) {
+            T scalar = static_cast<T>(0);
+            std::vector<T> q = orthogonal.getCol(j);
+
+            for (int k = 0; k < a.size(); ++k) {
+                scalar += a[k] * q[k];
+            }
+            scalars.push_back(scalar);
+            upper[j][i] = scalar;
+            
+        }
+
+        // calculatede the new orthogonal vector a (alpha)
+        std::vector<T> alpha;
+        for (int j = 0; j < a.size(); ++j) {
+            T el = a[j];
+            for (int k = 0; k < i; ++k) {
+                std::vector<T> q = orthogonal.getCol(k);
+                el -= scalars[k] * q[j];
+            }
+            alpha.push_back(el);
+        }
+        
+        //  calculate the length of new orthogonal vector a (alpha)
+        T alphaLength = static_cast<T>(0);
+        for (int j = 0; j < alpha.size(); ++j) {
+            alphaLength += alpha[j] * alpha[j];
+        }
+        alphaLength = sqrt(alphaLength);
+        upper[i][i] = alphaLength;
+
+        // calculatede the orthogonal column q
+        for (int j = 0; j < alpha.size(); ++j) {
+            orthogonal[j][i] = alpha[j] / alphaLength;
+        }
+    }
+    return Matrix<T>::Qr(orthogonal, upper);
+}
 
 template <typename T>
 typename Matrix<T>::Plu Matrix<T>::decompPLU() const {
@@ -118,7 +313,7 @@ typename Matrix<T>::Plu Matrix<T>::decompPLU() const {
         for (int j = pivotCol; j < colAmount; ++j) { // Go to next column if column has no pivot
             for (int k = i; k < rowAmount; ++k) { 
 
-                T currentElement = upper[k][j];
+                T currentElement = std::abs(upper[k][j]);
                 if ((largestPivotRow == -1 && currentElement != 0) || 
                     (largestPivotRow != -1 && currentElement > std::abs(upper[largestPivotRow][j]))) {
                         largestPivotRow = k;
@@ -128,7 +323,7 @@ typename Matrix<T>::Plu Matrix<T>::decompPLU() const {
             if (largestPivotRow != -1) break; // no pivot only zeroes if this is the case
         }
         if (pivotCol > rowAmount) break;
-        
+        if (largestPivotRow == -1) continue;
         if (largestPivotRow != i) {
             ++permutationAmount;
             upper.swapRow(i, largestPivotRow);
@@ -150,8 +345,6 @@ typename Matrix<T>::Plu Matrix<T>::decompPLU() const {
     return Matrix<T>::Plu(perm, lower, upper, permutationAmount);
 }
 
-
-
 template <typename T>
 T Matrix<T>::determinant() const {
     Matrix<T>::Plu plu = decompPLU();
@@ -168,7 +361,7 @@ T Matrix<T>::determinant() const {
 // get 1 then clear column (ex. get 1 in in 1st row 1st col, now clear rest of 1st col to 0, repeat for 2nd row 2nd col ect.)
 template <typename T>
 Matrix<T> Matrix<T>::inverse() const {
-    if (!isMatrixSquare()) {
+    if (!isSquare()) {
         std::cerr << "Can not get inverse of non square matrix \n";
         return Matrix<T>();
     }
@@ -365,8 +558,8 @@ Matrix<T>& Matrix<T>::swapRow(size_t rowA, size_t rowB) {
 }
 
 template <typename T>
- Matrix<T>& Matrix<T>::swapCol(size_t colA, size_t colB) {
-     if (colA > colAmount || colB > colAmount) throw std::runtime_error("Tried to swap non existing col");
+Matrix<T>& Matrix<T>::swapCol(size_t colA, size_t colB) {
+    if (colA > colAmount || colB > colAmount) throw std::runtime_error("Tried to swap non existing col");
     std::vector<T> tempCol = (*this).getCol(colA);
     (*this).setCol(colA, (*this).getCol(colB));
     (*this).setCol(colB, tempCol);
