@@ -21,7 +21,6 @@ bool Matrix<T>::isSameSize(const Matrix<T>& B) const {
     return getRowAmount() == B.getRowAmount() && getColAmount() == B.getColAmount();
 }
 
-
 template <typename T>
 bool Matrix<T>::isUpperTriangular(double tolerance) const {
     if (!isSquare()) return false;
@@ -45,6 +44,7 @@ bool Matrix<T>::isLowerTriangular(double tolerance) const {
     }
     return true;
 }
+
 template <typename T>
 bool Matrix<T>::operator==(const Matrix<T>& B) const {
     if (!isSameSize(B)) return false;
@@ -123,6 +123,7 @@ Matrix<T> Matrix<T>::transpose() const {
     return product;
 }
 
+// Problem is that if 1st row doesn't have pivot colum elimination is not done correctly ,so new pivot column doesn't really have a meaning.
 template <typename T>
 Matrix<T> Matrix<T>::ref(double tolerance) const {
     Matrix<T> ref(*this);
@@ -149,6 +150,7 @@ Matrix<T> Matrix<T>::ref(double tolerance) const {
         if (pivotCol > rowAmount) break;
         if (largestPivotRow == -1) continue;
         if (largestPivotRow != i) ref.swapRow(i, largestPivotRow);
+
         T scalar = ref[i][pivotCol];
 
         for (int j = 0; j < colAmount; ++j) { 
@@ -187,12 +189,13 @@ Matrix<T> Matrix<T>::rref(double tolerance) const {
 }
 
 template <typename T>
-std::vector<T> backSubstitution(Matrix<T> A, double tolerance) { // !!! does not work fix
+std::vector<T> backSubstitution(Matrix<T> A, double tolerance) {
     size_t rowAmount = A.getRowAmount();
     std::vector<T> res(rowAmount);
+    T one = static_cast<T>(1);
     for (int i = rowAmount - 1; 0 <= i; --i) {
         if (std::abs(A[i][i]) < tolerance) {
-            res[i] = static_cast<T>(1); 
+            res[i] = one; 
             continue;
         }
         int rowAmountIndex = (rowAmount - 1);
@@ -206,12 +209,14 @@ std::vector<T> backSubstitution(Matrix<T> A, double tolerance) { // !!! does not
     return res;
 }
 
+
+// !!! Problem is that if there is no pivot row it is not handled correctly in ref
 template <typename T>
-typename Matrix<T>::Eigen Matrix<T>::calcEigen(double tolerance) const {
+typename Matrix<T>::Eigen Matrix<T>::calcEigen(double tolerance) const { // !!! still doesn't work see pow() example
     tolerance * 10;
     if (!isSquare()) {
         std::cerr << "Can not calculate Eigen value and vector of non square matrix\n";
-        return Matrix<T>::Eigen(std::vector<std::vector<T>>(), std::vector<T>());
+        return Matrix<T>::Eigen(Matrix<T>(), std::vector<T>());
     }
     Matrix<T> A = Matrix<T>(*this);
     do {
@@ -229,18 +234,22 @@ typename Matrix<T>::Eigen Matrix<T>::calcEigen(double tolerance) const {
         T rounded = std::round(A[i][i] / tolerance);
         eigenValues.push_back(rounded * tolerance);
     }
-    A = Matrix<T>(*this); // think this is the thing which needed to be done back to drawing board
+    A = Matrix<T>(*this); 
  
     Matrix<T> I = getIdentity(rowAmount);
-    std::vector<std::vector<T>> eigenVectors;
-    size_t valueAmount = eigenValues.size(); // probably should just be row amount
+    Matrix<T> eigenVectors;
+    size_t valueAmount = eigenValues.size(); 
     for (size_t i = 0; i < valueAmount; ++i) {
         Matrix<T> linMatrix = A - (I * eigenValues[i]);
+        linMatrix.print();
+        std::cout << "- - - \n";
         linMatrix = linMatrix.ref(tolerance);
-        eigenVectors.push_back(backSubstitution(linMatrix, tolerance));
+        linMatrix.print();
+        std::cout << "\n";
+        eigenVectors.addRow(backSubstitution(linMatrix, tolerance));
     }
 
-    return Matrix<T>::Eigen(eigenVectors, eigenValues); // !!!remember to change
+    return Matrix<T>::Eigen(eigenVectors, eigenValues);
 }
 
 template <typename T>
@@ -453,7 +462,45 @@ Matrix<T> operator*(const T& scalar, const Matrix<T>& B)  {
     return B * scalar;
 }
 
-//Matrix<T> pow(const T& exponent) const;
+template <typename T>
+Matrix<T> Matrix<T>::pow(const T& exponent) const { // !!! Problem with getting correct eigen vectors 
+    if (!isSquare()) {
+        std::cerr << "Can not take power of non square matrix\n";
+        return Matrix<T>();
+    }
+
+    Matrix<T> A = Matrix<T>(*this);
+    if (exponent < 0) A = A.inverse();
+    T absoluteExponent = std::abs(exponent);
+ 
+    Matrix<T>::Eigen eigen = A.calcEigen();
+    std::vector<T> eigenValues = eigen.valueVec;
+    size_t eigenValuesAmount = eigenValues.size();
+
+    Matrix<T> eigenMatrix = eigen.vectorVec;
+    Matrix<T> inverseEigenMatrix = eigenMatrix.inverse();
+    Matrix<T> diagonal = Matrix<T>(eigenValuesAmount, eigenValuesAmount, static_cast<T>(0));
+
+    for (int i = 0; i < eigenValuesAmount; ++i) {
+        std::cout << eigenValues[i] <<  " "; 
+    }
+    std::cout << "\n";
+
+    std::cout << "A = PDP^-1\n";
+
+    for (int i = 0; i < eigenValuesAmount; ++i) {
+        diagonal[i][i] = std::pow(eigenValues[i], absoluteExponent);
+    }
+
+    eigenMatrix.print();
+    std::cout << "\n";
+    diagonal.print();
+    std::cout << "\n";
+    inverseEigenMatrix.print();
+    std::cout << "\n";
+
+    return (eigenMatrix * diagonal * inverseEigenMatrix);
+}
 
 
 // For non-const objects
