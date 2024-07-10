@@ -121,8 +121,6 @@ int main() {
      .addRow({0, 4, 5})
      .addRow({0, 4, 3});
 
-
-    Y.print();
     std::cout << "\n";
     
     auto eigen = Y.calcEigen();
@@ -137,11 +135,19 @@ int main() {
         }
         std::cout << "\n";
     }
-//    std::cout << "\n\n\n";
-//
-//    (Y * Y).print();
-//    std::cout << "\n\n";
-//    Y.pow(2).print();
+    std::cout << "\n\n\n";
+
+    int pow = 100;
+    
+    Matrix<double> mPow(Y);
+
+    for (int i = 1; i < pow; ++i) {
+        mPow = mPow * Y;
+    }
+
+    mPow.print();
+    std::cout << "\n\n";
+    Y.pow(pow).print();
 
 
     //std::cout << I.determinant() << "\n";

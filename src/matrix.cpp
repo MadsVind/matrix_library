@@ -123,7 +123,6 @@ Matrix<T> Matrix<T>::transpose() const {
     return product;
 }
 
-// Problem is that if 1st row doesn't have pivot colum elimination is not done correctly ,so new pivot column doesn't really have a meaning.
 template <typename T>
 Matrix<T> Matrix<T>::ref(double tolerance) const {
     Matrix<T> ref(*this);
@@ -132,122 +131,142 @@ Matrix<T> Matrix<T>::ref(double tolerance) const {
     size_t colAmount = getColAmount();
     
     T zero = static_cast<T>(0);
-    int pivotCol = 0;
-    for (int i = 0; i < rowAmount; ++i) { // Find pivot in every row
-        int largestPivotRow = -1;
-        for (int j = pivotCol; j < colAmount; ++j) { // Go to next column if column has no pivot
-            for (int k = i; k < rowAmount; ++k) { 
-                T currentElement = std::abs(ref[k][j]);
-                if ((largestPivotRow == -1 && currentElement > tolerance)) {    
-                    largestPivotRow = k;
-                }
-                if (largestPivotRow != -1 && currentElement > std::abs(ref[largestPivotRow][j])) largestPivotRow = k;
-            }
-            pivotCol = j;
-            if (largestPivotRow != -1) break; // no pivot only zeroes if this is the case
-        }
 
-        if (pivotCol > rowAmount) break;
-        if (largestPivotRow == -1) continue;
-        if (largestPivotRow != i) ref.swapRow(i, largestPivotRow);
-
-        T scalar = ref[i][pivotCol];
-
-        for (int j = 0; j < colAmount; ++j) { 
-            ref[i][j] = ref[i][j] / scalar;
-        }
+    int pivot = 0;
+    for (int col = 0; col < colAmount; ++col) {
+        int largestPivotRowIndex = -1;
         
-
-        for (int j = i + 1; j < rowAmount; ++j) {
-            T scalar = ref[j][i]; 
-            for (int k = 0; k < colAmount; ++k) {
-                ref[j][k] -= scalar * ref[i][k];
+        for (int tempRow = pivot; tempRow < rowAmount; ++tempRow) { // go through rows in column to find largest          
+            T currentElement = std::abs(ref[tempRow][col]);
+            if (largestPivotRowIndex == -1 && currentElement > tolerance ||
+                largestPivotRowIndex != -1 && currentElement > std::abs(ref[largestPivotRowIndex][col])) {
+                largestPivotRowIndex = tempRow; // Should work since 
             }
         }
+
+        if (largestPivotRowIndex == -1) continue;
+        if (largestPivotRowIndex != pivot) ref.swapRow(pivot, largestPivotRowIndex);
+        
+        for (int row = pivot + 1; row < colAmount; ++row) {
+            T nonPivotInCol = ref[row][col];
+            if (std::abs(nonPivotInCol) < tolerance) continue;
+            T pivotInCol = ref[pivot][col];
+
+            T scalar = ref[row][col] / ref[pivot][col]; 
+            for (int i = col; i < colAmount; ++i) {
+                ref[row][i] -= scalar * ref[pivot][i];
+            }
+        }
+        ++pivot;
     }
     return ref;
 }
 
 template <typename T>
-Matrix<T> Matrix<T>::rref(double tolerance) const {
-    Matrix<T> rref((*this).ref());
+Matrix<T> Matrix<T>::rref(double tolerance) const { 
+    Matrix<T> rref(*this);
 
     size_t rowAmount = getRowAmount();
     size_t colAmount = getColAmount();
     
-    int pivotCol = 0;
-    for (int i = 0; i < rowAmount; ++i) { // Find pivot in every row
-        for (int j = 0; j < rowAmount; ++j) {
-            if (i == j) continue;
-            T scalar = rref[j][i]; 
-            for (int k = i; k < colAmount; ++k) {
-                rref[j][k] -= scalar * rref[i][k];
+    T zero = static_cast<T>(0);
+
+    int pivot = 0;
+    for (int col = 0; col < colAmount; ++col) {
+        int largestPivotRowIndex = -1;
+        
+        for (int tempRow = pivot; tempRow < rowAmount; ++tempRow) {       
+            T currentElement = std::abs(rref[tempRow][col]);
+            if (largestPivotRowIndex == -1 && currentElement > tolerance ||
+                largestPivotRowIndex != -1 && currentElement > std::abs(rref[largestPivotRowIndex][col])) {
+                largestPivotRowIndex = tempRow;
             }
         }
+
+        if (largestPivotRowIndex == -1) continue;
+        if (largestPivotRowIndex != pivot) rref.swapRow(pivot, largestPivotRowIndex);
+
+        T scalar = rref[pivot][col];
+
+        std::cout << "\n";
+        rref.print();
+        for (int i = col; i < colAmount; ++i) { 
+            rref[pivot][i] = rref[pivot][i] / scalar;
+        }
+    
+        for (int row = 0; row < rowAmount; ++row) {
+            T nonPivotInCol = rref[row][col];
+            if (pivot == row || nonPivotInCol == 0) continue;
+            T pivotInCol = rref[pivot][col];
+            T scalar = nonPivotInCol / pivotInCol; 
+            for (int k = col; k < colAmount; ++k) {
+                rref[row][k] -= scalar * rref[pivot][k];
+            }
+        }
+        ++pivot;
     }
     return rref;
 }
 
 template <typename T>
-std::vector<T> backSubstitution(Matrix<T> A, double tolerance) {
+std::vector<T> backSubstitution(Matrix<T> A, double tolerance) { // Doesn't work if pivot is not on diagonal
     size_t rowAmount = A.getRowAmount();
+    size_t colAmount = A.getColAmount();
+
+    size_t rowAmountIndex = (rowAmount - 1);
+
     std::vector<T> res(rowAmount);
     T one = static_cast<T>(1);
-    for (int i = rowAmount - 1; 0 <= i; --i) {
-        if (std::abs(A[i][i]) < tolerance) {
-            res[i] = one; 
+    T zero = static_cast<T>(0);
+    for (int row = rowAmountIndex; 0 <= row; --row) {
+        bool isEmpty = true;
+        int pivot = -1;
+        for (int col = row; col < colAmount; ++col) { 
+            if (std::abs(A[row][col]) > tolerance) {
+                isEmpty = false;
+                pivot = col;
+                break;
+            }
+        }
+
+        if (isEmpty) {
+            res[row] = one; 
             continue;
         }
-        int rowAmountIndex = (rowAmount - 1);
-        int varAmount =  rowAmountIndex - i;
-        T varSum = static_cast<T>(0);
-        for (int j = 0; j < varAmount; ++j) {
-            varSum += A[i][ rowAmountIndex - j] * res[rowAmountIndex - j];
+
+        T varSum = zero;
+        T pivotVal = A[row][pivot];
+
+        int pivotOffset = row - pivot;
+        for (int col = pivot + 1; col < colAmount; ++col) {
+           varSum -= (A[row][col] * res[col + pivotOffset]) / pivotVal; 
         }
-        res[i] = -varSum;
+        res[row] = varSum;
     }
+    std::cout << "\n";
     return res;
 }
 
 
-// !!! Problem is that if there is no pivot row it is not handled correctly in ref
 template <typename T>
-typename Matrix<T>::Eigen Matrix<T>::calcEigen(double tolerance) const { // !!! still doesn't work see pow() example
-    tolerance * 10;
+typename Matrix<T>::Eigen Matrix<T>::calcEigen(double tolerance) const {
     if (!isSquare()) {
         std::cerr << "Can not calculate Eigen value and vector of non square matrix\n";
         return Matrix<T>::Eigen(Matrix<T>(), std::vector<T>());
     }
     Matrix<T> A = Matrix<T>(*this);
-    do {
-        Matrix<T>::Qr qr = A.decompQR();
-
-        A = qr.ortogonal * qr.upper;
-
-    } while (!A.isUpperTriangular(tolerance * 0.1)); // nessesary for tolerance to work kinda
-
-    std::vector<T> eigenValues;
-    size_t colAmount = A.getColAmount();
     size_t rowAmount = A.getRowAmount();
+    Matrix<T>::Qr qr = A.decompQR();
+    Matrix<T> eigenVectors = qr.ortogonal; 
 
-    for (size_t i = 0; i < rowAmount; ++i) {
-        T rounded = std::round(A[i][i] / tolerance);
-        eigenValues.push_back(rounded * tolerance);
-    }
-    A = Matrix<T>(*this); 
- 
-    Matrix<T> I = getIdentity(rowAmount);
-    Matrix<T> eigenVectors;
-    size_t valueAmount = eigenValues.size(); 
-    for (size_t i = 0; i < valueAmount; ++i) {
-        Matrix<T> linMatrix = A - (I * eigenValues[i]);
-        linMatrix.print();
-        std::cout << "- - - \n";
-        linMatrix = linMatrix.ref(tolerance);
-        linMatrix.print();
-        std::cout << "\n";
-        eigenVectors.addRow(backSubstitution(linMatrix, tolerance));
-    }
+    A = qr.ortogonal * qr.upper;
+    while (!A.isUpperTriangular(tolerance)) {
+        Matrix<T>::Qr qr = A.decompQR();
+        A = qr.ortogonal * qr.upper;
+        eigenVectors = eigenVectors * qr.ortogonal;
+    } 
+    std::vector<T> eigenValues;
+    for (size_t i = 0; i < rowAmount; ++i) {eigenValues.push_back(A[i][i]);}
 
     return Matrix<T>::Eigen(eigenVectors, eigenValues);
 }
