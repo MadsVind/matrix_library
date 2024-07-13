@@ -1,9 +1,5 @@
 #include <matrixTest.hpp>
 
-#define MATRIX_UTIL
-
-const size_t sampleSize = 1000;
-
 TEST_CASE("Does isSquare() return the expected boolean value", "[isSquare]") {
     for (int i = 1; i < sampleSize; ++i) {
         int j = sampleSize - i;

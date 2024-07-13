@@ -8,5 +8,8 @@
 #include <cmath>
 #include <matrix.hpp>
 
+// TODO: 
+// TODO: - Compatabillity between types.
+// TODO: - tolerance comparisons 
 
 #endif

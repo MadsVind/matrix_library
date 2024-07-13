@@ -1,9 +1,5 @@
 #include <matrixTest.hpp>
 
-#define IS_TRIANGULAR
-
-const size_t sampleSize = 1000;
-
 // many of these test can also be done on a large sample size, but three is such a thing as over testing.
 TEST_CASE("Does isUpperTriangular() return expected values to corresponding matrices", "[isUpperTriangular]") {
     Matrix<double> upperTriangular;

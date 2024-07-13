@@ -1,9 +1,5 @@
 #include <matrixTest.hpp>
 
-#define GET_IDENTITY
-
-const size_t sampleSize = 1000;
-
 TEST_CASE("Does getIdentity() create identity matrix of apropiate size", "[getIdentity]") {
     const size_t matrixTestSize = 9;
 

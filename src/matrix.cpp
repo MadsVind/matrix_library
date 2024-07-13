@@ -62,10 +62,7 @@ bool Matrix<T>::operator==(const Matrix<T>& B) const {
 
 template <typename T>
 Matrix<T> Matrix<T>::operator+(const Matrix<T>& B) const {
-    if (!isSameSize(B)) {
-        std::cerr << "Matrices was not of matching sizes and can therefore no be added together";
-        return Matrix<T>();
-    }
+    if (!isSameSize(B)) throw std::invalid_argument("Matrices was not of matching sizes and can therefore no be added together");
     size_t rowAmount = getRowAmount();
     size_t colAmount = getColAmount();
     Matrix<T> product(rowAmount , colAmount);
@@ -80,10 +77,7 @@ Matrix<T> Matrix<T>::operator+(const Matrix<T>& B) const {
 
 template <typename T>
 Matrix<T> Matrix<T>::operator-(const Matrix<T>& B) const {
-    if (!isSameSize(B)) {
-        std::cerr << "Matrices was not of matching sizes and can therefore no be added together";
-        return Matrix<T>();
-    }
+    if (!isSameSize(B)) throw std::invalid_argument("Matrices was not of matching sizes and can therefore no be added together");
     size_t rowAmount = getRowAmount();
     size_t colAmount = getColAmount();
     Matrix<T> product(rowAmount , colAmount);
@@ -525,7 +519,7 @@ Matrix<T> Matrix<T>::pow(const T& exponent) const { // !!! Problem with getting 
 // For non-const objects
 template <typename T>
 std::vector<T>& Matrix<T>::operator[](int index) {
-    if (index >= getRowAmount() || index < 0) {
+    if (index >= rowAmount || index < 0) {
         throw std::out_of_range("Index out of range");
     }
     return data[index];
@@ -534,7 +528,7 @@ std::vector<T>& Matrix<T>::operator[](int index) {
 // For const objects
 template <typename T>
 const std::vector<T>& Matrix<T>::operator[](int index) const {
-    if (index >= getRowAmount() || index < 0) {
+    if (index >= rowAmount || index < 0) {
         throw std::out_of_range("Index out of range");
     }
     return data[index];
@@ -542,8 +536,9 @@ const std::vector<T>& Matrix<T>::operator[](int index) const {
 
 template <typename T>
 std::vector<T> Matrix<T>::getCol(size_t colIndex) const {
+    if (colIndex > colAmount -1) throw std::out_of_range("Invalid col index");
     std::vector<T> product;
-    for (int i = 0; i < getRowAmount(); ++i) {
+    for (int i = 0; i < rowAmount; ++i) {
         product.push_back(data[i][colIndex]);
     } 
     return product;
@@ -551,21 +546,25 @@ std::vector<T> Matrix<T>::getCol(size_t colIndex) const {
 
 template <typename T>
 std::vector<T> Matrix<T>::getRow(size_t rowIndex) const {
+    if (rowIndex > rowAmount -1) throw std::out_of_range("Invalid row index");
     return data[rowIndex];
 }
 
 template <typename T>
 const T& Matrix<T>::getElement(size_t row, size_t col) const {
+    if (row > rowAmount - 1 || col > colAmount - 1) throw std::out_of_range("Invalid row or col index");
     return data[row][col];
 }
 
 template <typename T>
 T& Matrix<T>::getElement(size_t row, size_t col) {
+    if (row > rowAmount - 1 || col > colAmount - 1) throw std::out_of_range("Invalid row or col index");
     return data[row][col];
 }
 
 template <typename T>
 void Matrix<T>::assignElement(size_t row, size_t col, T el) {
+    if (row > rowAmount - 1 || col > colAmount - 1) throw std::out_of_range("Invalid row or col index");
     data[row][col] = el;
 }
 
@@ -616,7 +615,7 @@ Matrix<T>& Matrix<T>::setCol(size_t colIndex, std::vector<T> col) {
 // if you swap the same row with the same row you deserve bad performance
 template <typename T>
 Matrix<T>& Matrix<T>::swapRow(size_t rowA, size_t rowB) { 
-    if (rowA > rowAmount || rowB > rowAmount) throw std::runtime_error("Tried to swap non existing row");
+    if (rowA > rowAmount - 1 || rowB > rowAmount - 1) throw std::runtime_error("Tried to swap non existing row");
     std::vector<T> tempRow = data[rowA];
     (*this).setRow(rowA, data[rowB]);
     (*this).setRow(rowB, tempRow);
@@ -625,7 +624,7 @@ Matrix<T>& Matrix<T>::swapRow(size_t rowA, size_t rowB) {
 
 template <typename T>
 Matrix<T>& Matrix<T>::swapCol(size_t colA, size_t colB) {
-    if (colA > colAmount || colB > colAmount) throw std::runtime_error("Tried to swap non existing col");
+    if (colA > colAmount - 1 || colB > colAmount - 1) throw std::runtime_error("Tried to swap non existing col");
     std::vector<T> tempCol = (*this).getCol(colA);
     (*this).setCol(colA, (*this).getCol(colB));
     (*this).setCol(colB, tempCol);

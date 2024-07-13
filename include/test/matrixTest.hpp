@@ -5,4 +5,6 @@
 #include <matrix.hpp>
 #include <limits>
 
+const size_t sampleSize = 1000;
+
 #endif
