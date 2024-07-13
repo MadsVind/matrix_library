@@ -116,41 +116,38 @@ int main() {
 //    ortho.print();
 //    std::cout << "\n";
 //    upper.print();
-
-    Matrix<double> Z;
-    Z.addRow({1, -1})
-     .addRow({2, 4});
-
-    Matrix<double> A_IVal = (Z - (Matrix<double>::getIdentity(Z.getRowAmount()) * 3));
-    A_IVal.print();
-    A_IVal.ref().print();
+    Matrix<double> Y;
+    Y.addRow({2, 0, 0})
+     .addRow({0, 4, 5})
+     .addRow({0, 4, 3});
 
     std::cout << "\n";
-    A_IVal = (Z - (Matrix<double>::getIdentity(Z.getRowAmount()) * 2));
-    A_IVal.print();
-    A_IVal.ref().print();
-
-    std::cout << "\n\n\n";
-
-
-    Matrix<double> Y;
-    Y.addRow({1, -1})
-     .addRow({2, 4});
-
-    auto eigen = Y.calcEigen(0.00000000000000000001);
+    
+    auto eigen = Y.calcEigen();
     std::vector<double> valueVec = eigen.valueVec;
-    std::vector<std::vector<double>> vectorVec = eigen.vectorVec;
+    Matrix<double> vectorVec = eigen.vectorVec;
 
     for (int i = 0; i < valueVec.size(); ++i) {
         std::cout << "Eigen -value: " << valueVec[i];
-        std::vector<double> vector = vectorVec[i];
         std::cout << " -vector: ";
-        for (int j = 0; j < vector.size(); ++j) {
-           std::cout << vector[j] << " ";
+        for (int j = 0; j < vectorVec[i].size(); ++j) {
+           std::cout << vectorVec[i][j] << " ";
         }
         std::cout << "\n";
     }
+    std::cout << "\n\n\n";
 
+    int pow = 100;
+    
+    Matrix<double> mPow(Y);
+
+    for (int i = 1; i < pow; ++i) {
+        mPow = mPow * Y;
+    }
+
+    mPow.print();
+    std::cout << "\n\n";
+    Y.pow(pow).print();
 
 
     //std::cout << I.determinant() << "\n";

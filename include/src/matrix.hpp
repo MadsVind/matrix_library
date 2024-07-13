@@ -46,9 +46,9 @@ public:
 
     class Eigen {
        public: 
-        Eigen(std::vector<std::vector<T>> vectorVec, std::vector<T> valueVec) 
+        Eigen(Matrix<T> vectorVec, std::vector<T> valueVec) 
             : vectorVec(vectorVec), valueVec(valueVec) {}
-        const std::vector<std::vector<T>> vectorVec;
+        const Matrix<T> vectorVec;
         const std::vector<T> valueVec;
     };
 
