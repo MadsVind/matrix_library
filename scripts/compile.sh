@@ -24,7 +24,7 @@ if [ "$BUILD_TYPE" == "Debug" ]; then
     # Debug-specific commands here
 else
     # Run tests only in Release mode
-    ctest
+    ctest --output-on-failure --success
     echo "Release build complete."
     # Release-specific commands here
 fi

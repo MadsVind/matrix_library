@@ -11,6 +11,8 @@ set(CMAKE_CXX_STANDARD_REQUIRED True)
 # Enable testing
 enable_testing()
 
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
+
 # Include the directories
 include_directories("include")
 file(GLOB_RECURSE ALL_INCLUDE_DIRS RELATIVE ${CMAKE_SOURCE_DIR} "src/*.hpp" "src/**/*.hpp" "include/**/*.hpp")
@@ -28,7 +30,6 @@ add_library(cnn_lib ${SOURCES})
 # Link the required libraries to the library
 target_link_libraries(cnn_lib PUBLIC )
 
-
 # Add an executable that is built from main.cpp
 add_executable(cnn main.cpp)
 
@@ -36,4 +37,4 @@ add_executable(cnn main.cpp)
 target_link_libraries(cnn PRIVATE cnn_lib)
 
 # Add the test subdirectory
-# add_subdirectory(test)
+add_subdirectory(test)
