@@ -6,5 +6,8 @@
 #include <limits>
 
 const size_t sampleSize = 1000;
+const double tolerance = 0.0001;
+
+bool checkVecApprox(const std::vector<double>& vec, const std::vector<double>& expected);
 
 #endif

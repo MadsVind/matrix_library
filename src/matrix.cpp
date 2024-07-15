@@ -130,7 +130,8 @@ Matrix<T> Matrix<T>::ref(double tolerance) const {
     for (int col = 0; col < colAmount; ++col) {
         int largestPivotRowIndex = -1;
         
-        for (int tempRow = pivot; tempRow < rowAmount; ++tempRow) { // go through rows in column to find largest          
+        // Find largest pivot in column
+        for (int tempRow = pivot; tempRow < rowAmount; ++tempRow) {          
             T currentElement = std::abs(ref[tempRow][col]);
             if (largestPivotRowIndex == -1 && currentElement > tolerance ||
                 largestPivotRowIndex != -1 && currentElement > std::abs(ref[largestPivotRowIndex][col])) {
@@ -138,15 +139,19 @@ Matrix<T> Matrix<T>::ref(double tolerance) const {
             }
         }
 
+        // If no pivot in column then continue
         if (largestPivotRowIndex == -1) continue;
+        // Swap rows if standard pivot wasn't the abs largest
         if (largestPivotRowIndex != pivot) ref.swapRow(pivot, largestPivotRowIndex);
         
-        for (int row = pivot + 1; row < colAmount; ++row) {
+        // Eliminate values lower in pivot column
+        for (int row = pivot + 1; row < rowAmount; ++row) {
             T nonPivotInCol = ref[row][col];
             if (std::abs(nonPivotInCol) < tolerance) continue;
-            T pivotInCol = ref[pivot][col];
 
-            T scalar = ref[row][col] / ref[pivot][col]; 
+            T scalar = nonPivotInCol / ref[pivot][col]; 
+
+            // Minus pivot row from lower row 
             for (int i = col; i < colAmount; ++i) {
                 ref[row][i] -= scalar * ref[pivot][i];
             }
@@ -156,6 +161,8 @@ Matrix<T> Matrix<T>::ref(double tolerance) const {
     return ref;
 }
 
+
+// !!! Does not work
 template <typename T>
 Matrix<T> Matrix<T>::rref(double tolerance) const { 
     Matrix<T> rref(*this);
@@ -181,9 +188,7 @@ Matrix<T> Matrix<T>::rref(double tolerance) const {
         if (largestPivotRowIndex != pivot) rref.swapRow(pivot, largestPivotRowIndex);
 
         T scalar = rref[pivot][col];
-
-        std::cout << "\n";
-        rref.print();
+        
         for (int i = col; i < colAmount; ++i) { 
             rref[pivot][i] = rref[pivot][i] / scalar;
         }
@@ -191,10 +196,10 @@ Matrix<T> Matrix<T>::rref(double tolerance) const {
         for (int row = 0; row < rowAmount; ++row) {
             T nonPivotInCol = rref[row][col];
             if (pivot == row || nonPivotInCol == 0) continue;
-            T pivotInCol = rref[pivot][col];
-            T scalar = nonPivotInCol / pivotInCol; 
-            for (int k = col; k < colAmount; ++k) {
-                rref[row][k] -= scalar * rref[pivot][k];
+
+            T scalar = nonPivotInCol / rref[pivot][col]; 
+            for (int i = col; i < colAmount; ++i) {
+                rref[row][i] -= scalar * rref[pivot][i];
             }
         }
         ++pivot;
@@ -514,7 +519,6 @@ Matrix<T> Matrix<T>::pow(const T& exponent) const { // !!! Problem with getting 
 
     return (eigenMatrix * diagonal * inverseEigenMatrix);
 }
-
 
 // For non-const objects
 template <typename T>
