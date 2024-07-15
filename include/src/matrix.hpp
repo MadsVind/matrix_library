@@ -32,11 +32,15 @@ public:
         }
     }
 
-    Matrix(const Matrix<T>& x) : rowAmount(x.rowAmount), colAmount(x.colAmount), data(x.data) {}
+    Matrix(const Matrix<T>& x) : rowAmount(x.rowAmount), colAmount(x.colAmount), data(x.data.size()) {
+        for (size_t i = 0; i < x.data.size(); ++i) {
+            data[i] = x.data[i];
+        }
+    }
 
     class Plu {
        public: 
-        Plu(Matrix<T> permutation, Matrix<T> lower, Matrix<T> upper, size_t permutationAmount) 
+        Plu(const Matrix<T>& permutation, const Matrix<T>& lower, const Matrix<T>& upper, const size_t& permutationAmount) 
             : permutation(permutation), lower(lower), upper(upper), permutationAmount(permutationAmount) {}
         const Matrix<T> permutation;
         const Matrix<T> lower;
@@ -46,17 +50,17 @@ public:
 
     class Eigen {
        public: 
-        Eigen(Matrix<T> vectorVec, std::vector<T> valueVec) 
+        Eigen(const Matrix<T>& vectorVec, const std::vector<T>& valueVec) 
             : vectorVec(vectorVec), valueVec(valueVec) {}
         const Matrix<T> vectorVec;
         const std::vector<T> valueVec;
     };
 
     class Qr {
-       public: 
-        Qr(Matrix<T> ortogonal, Matrix<T> upper) 
-            : ortogonal(ortogonal), upper(upper) {}
-        const Matrix<T> ortogonal;
+     public: 
+        Qr(const Matrix<T>& orthogonal, const Matrix<T>& upper) 
+            : orthogonal(orthogonal), upper(upper) {}
+        const Matrix<T> orthogonal;
         const Matrix<T> upper;
     };
 

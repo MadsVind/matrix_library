@@ -162,7 +162,6 @@ Matrix<T> Matrix<T>::ref(double tolerance) const {
 }
 
 
-// !!! Does not work
 template <typename T>
 Matrix<T> Matrix<T>::rref(double tolerance) const { 
     Matrix<T> rref(*this);
@@ -188,7 +187,7 @@ Matrix<T> Matrix<T>::rref(double tolerance) const {
         if (largestPivotRowIndex != pivot) rref.swapRow(pivot, largestPivotRowIndex);
 
         T scalar = rref[pivot][col];
-        
+
         for (int i = col; i < colAmount; ++i) { 
             rref[pivot][i] = rref[pivot][i] / scalar;
         }
@@ -247,6 +246,73 @@ std::vector<T> backSubstitution(Matrix<T> A, double tolerance) { // Doesn't work
 }
 
 
+// !!! Doesn't work last column of Q and R is always incorrect 
+template <typename T>
+typename Matrix<T>::Qr Matrix<T>::decompQR() const {
+    Matrix<T> orthogonal = Matrix<T>(rowAmount, rowAmount);
+    Matrix<T> upper = Matrix<T>(rowAmount, colAmount, static_cast<T>(0));
+
+    // For every column of A
+    for (int col = 0; col < colAmount; ++col) {
+        std::vector<T> a = getCol(col);
+        std::vector<T> scalars;
+
+        // Calculate the scalars of the new orthogonal vector a (alpha)
+        // These scalars are also the non digonal entries in upper
+        for (int qIdx = 0; qIdx < col; ++qIdx) {
+            T scalar = static_cast<T>(0);
+            std::vector<T> q = orthogonal.getCol(qIdx);
+
+            // Vector product of columns of org matrix A and Q, which will become a scalar 
+            for (int row = 0; row < a.size(); ++row) {
+                scalar += a[row] * q[row];
+            }
+            scalars.push_back(scalar);
+            upper[qIdx][col] = scalar;
+        }
+
+        // Calculate the new orthogonal vector a (alpha)
+        std::vector<T> alpha;
+        for (int row = 0; row < a.size(); ++row) {
+            T el = a[row];
+            for (int qIdx = 0; qIdx < scalars.size(); ++qIdx) {
+                std::vector<T> q = orthogonal.getCol(qIdx);
+                el -= scalars[qIdx] * q[row];
+            }
+            alpha.push_back(el);
+        }
+        
+        //  Calculate the length of new orthogonal vector a (alpha)
+        T alphaLength = static_cast<T>(0);
+        for (int row = 0; row < alpha.size(); ++row) {
+            alphaLength += alpha[row] * alpha[row];
+        }
+        alphaLength = sqrt(alphaLength);
+
+        // True: We don't want to do the below since there isn't that amount of cols in Q and upper doesn't have col rows
+        if (col >= rowAmount) continue; 
+        
+        upper[col][col] = alphaLength;
+
+        T zero = static_cast<T>(0);
+
+        // If there is zero vector in a
+        if (alphaLength == zero) {
+            for (int row = 0; row < alpha.size(); ++row) {
+                orthogonal[row][col] = zero;
+            }
+            continue;
+        }
+
+        // Calculatede the orthogonal column q
+        for (int row = 0; row < alpha.size(); ++row) {
+            orthogonal[row][col] = alpha[row] / alphaLength;
+        }
+    }
+    return Matrix<T>::Qr(orthogonal, upper); 
+}
+
+
 template <typename T>
 typename Matrix<T>::Eigen Matrix<T>::calcEigen(double tolerance) const {
     if (!isSquare()) {
@@ -256,13 +322,13 @@ typename Matrix<T>::Eigen Matrix<T>::calcEigen(double tolerance) const {
     Matrix<T> A = Matrix<T>(*this);
     size_t rowAmount = A.getRowAmount();
     Matrix<T>::Qr qr = A.decompQR();
-    Matrix<T> eigenVectors = qr.ortogonal; 
+    Matrix<T> eigenVectors = qr.orthogonal; 
 
-    A = qr.ortogonal * qr.upper;
+    A = qr.orthogonal * qr.upper;
     while (!A.isUpperTriangular(tolerance)) {
         Matrix<T>::Qr qr = A.decompQR();
-        A = qr.ortogonal * qr.upper;
-        eigenVectors = eigenVectors * qr.ortogonal;
+        A = qr.orthogonal * qr.upper;
+        eigenVectors = eigenVectors * qr.orthogonal;
     } 
     std::vector<T> eigenValues;
     for (size_t i = 0; i < rowAmount; ++i) {eigenValues.push_back(A[i][i]);}
@@ -270,58 +336,6 @@ typename Matrix<T>::Eigen Matrix<T>::calcEigen(double tolerance) const {
     return Matrix<T>::Eigen(eigenVectors, eigenValues);
 }
 
-template <typename T>
-typename Matrix<T>::Qr Matrix<T>::decompQR() const {
-    Matrix<T> orthogonal = Matrix<T>(rowAmount, rowAmount);
-    Matrix<T> upper = Matrix<T>(rowAmount, colAmount, static_cast<T>(0));
-
-    size_t rowAmount = getRowAmount();
-    size_t colAmount = getColAmount();
-
-    for (int i = 0; i < rowAmount; ++i) {
-        std::vector<T> a = (*this).getCol(i);
-        std::vector<T> scalars;
-
-        // Calculate the scalars of the new orthogonal vector a (alpha)
-        // These scalars are also the non digonal entries in upper
-        for (int j = 0; j < i; ++j) {
-            T scalar = static_cast<T>(0);
-            std::vector<T> q = orthogonal.getCol(j);
-
-            for (int k = 0; k < a.size(); ++k) {
-                scalar += a[k] * q[k];
-            }
-            scalars.push_back(scalar);
-            upper[j][i] = scalar;
-            
-        }
-
-        // calculatede the new orthogonal vector a (alpha)
-        std::vector<T> alpha;
-        for (int j = 0; j < a.size(); ++j) {
-            T el = a[j];
-            for (int k = 0; k < i; ++k) {
-                std::vector<T> q = orthogonal.getCol(k);
-                el -= scalars[k] * q[j];
-            }
-            alpha.push_back(el);
-        }
-        
-        //  calculate the length of new orthogonal vector a (alpha)
-        T alphaLength = static_cast<T>(0);
-        for (int j = 0; j < alpha.size(); ++j) {
-            alphaLength += alpha[j] * alpha[j];
-        }
-        alphaLength = sqrt(alphaLength);
-        upper[i][i] = alphaLength;
-
-        // calculatede the orthogonal column q
-        for (int j = 0; j < alpha.size(); ++j) {
-            orthogonal[j][i] = alpha[j] / alphaLength;
-        }
-    }
-    return Matrix<T>::Qr(orthogonal, upper);
-}
 
 template <typename T>
 typename Matrix<T>::Plu Matrix<T>::decompPLU() const {

@@ -64,5 +64,21 @@ std::vector<float> sigmoid(std::vector<float> input) {
 
 
 int main() {
-    return 0;
+    Matrix<double> matrix1;
+    Matrix<double> matrix2;
+
+    matrix1.addRow({1, 2, 3})
+           .addRow({4, 5, 6})
+           .addRow({7, 8, 9});
+
+    matrix2.addRow({1, 2, 3, 4})
+           .addRow({5, 6, 7, 8})
+           .addRow({9, 10, 11, 12});
+
+    Matrix<double>::Qr qr = matrix2.decompQR();
+
+    qr.orthogonal.print();
+    std::cout << "\n";
+    qr.upper.print();
+
 }
