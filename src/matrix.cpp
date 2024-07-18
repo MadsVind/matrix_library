@@ -245,12 +245,15 @@ std::vector<T> backSubstitution(Matrix<T> A, double tolerance) { // Doesn't work
     return res;
 }
 
-
-// !!! Doesn't work last column of Q and R is always incorrect 
 template <typename T>
 typename Matrix<T>::Qr Matrix<T>::decompQR() const {
+    if (determinant() == 0) {
+        std::cerr << "Can not use Gram-Schmidt method on matrix since it is linuarly dependent\n";
+        return Matrix<T>::Qr(Matrix<T>(), Matrix<T>()); 
+    }
+    T zero = static_cast<T>(0);
     Matrix<T> orthogonal = Matrix<T>(rowAmount, rowAmount);
-    Matrix<T> upper = Matrix<T>(rowAmount, colAmount, static_cast<T>(0));
+    Matrix<T> upper = Matrix<T>(rowAmount, colAmount, zero);
 
     // For every column of A
     for (int col = 0; col < colAmount; ++col) {
@@ -260,7 +263,7 @@ typename Matrix<T>::Qr Matrix<T>::decompQR() const {
         // Calculate the scalars of the new orthogonal vector a (alpha)
         // These scalars are also the non digonal entries in upper
         for (int qIdx = 0; qIdx < col; ++qIdx) {
-            T scalar = static_cast<T>(0);
+            T scalar = zero;
             std::vector<T> q = orthogonal.getCol(qIdx);
 
             // Vector product of columns of org matrix A and Q, which will become a scalar 
@@ -268,22 +271,22 @@ typename Matrix<T>::Qr Matrix<T>::decompQR() const {
                 scalar += a[row] * q[row];
             }
             scalars.push_back(scalar);
-            upper[qIdx][col] = scalar;
+            upper[qIdx][col] = scalar; 
         }
 
         // Calculate the new orthogonal vector a (alpha)
-        std::vector<T> alpha;
+        std::vector<T> alpha(a.size(), zero);
         for (int row = 0; row < a.size(); ++row) {
             T el = a[row];
             for (int qIdx = 0; qIdx < scalars.size(); ++qIdx) {
                 std::vector<T> q = orthogonal.getCol(qIdx);
                 el -= scalars[qIdx] * q[row];
             }
-            alpha.push_back(el);
+            alpha[row] = el;
         }
         
         //  Calculate the length of new orthogonal vector a (alpha)
-        T alphaLength = static_cast<T>(0);
+        T alphaLength = zero;
         for (int row = 0; row < alpha.size(); ++row) {
             alphaLength += alpha[row] * alpha[row];
         }
@@ -293,16 +296,6 @@ typename Matrix<T>::Qr Matrix<T>::decompQR() const {
         if (col >= rowAmount) continue; 
         
         upper[col][col] = alphaLength;
-
-        T zero = static_cast<T>(0);
-
-        // If there is zero vector in a
-        if (alphaLength == zero) {
-            for (int row = 0; row < alpha.size(); ++row) {
-                orthogonal[row][col] = zero;
-            }
-            continue;
-        }
 
         // Calculatede the orthogonal column q
         for (int row = 0; row < alpha.size(); ++row) {
@@ -335,7 +328,6 @@ typename Matrix<T>::Eigen Matrix<T>::calcEigen(double tolerance) const {
 
     return Matrix<T>::Eigen(eigenVectors, eigenValues);
 }
-
 
 template <typename T>
 typename Matrix<T>::Plu Matrix<T>::decompPLU() const {
