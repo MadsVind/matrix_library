@@ -8,7 +8,7 @@
 #include <cmath>
 #include <matrix.hpp>
 
-// TODO: 
+// TODO: sex med gonge
 // TODO: - Compatabillity between types.
 // TODO: - tolerance comparisons 
 

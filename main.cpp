@@ -66,19 +66,28 @@ std::vector<float> sigmoid(std::vector<float> input) {
 int main() {
     Matrix<double> matrix1;
     Matrix<double> matrix2;
+    Matrix<double> matrix3;
 
-    matrix1.addRow({1, 2, 3})
-           .addRow({4, 5, 6})
-           .addRow({7, 8, 9});
+    matrix1.addRow({1, 1, 0})
+           .addRow({1, 0, 1})
+           .addRow({0, 1, 1});
 
-    matrix2.addRow({1, 2, 3, 4})
-           .addRow({5, 6, 7, 8})
-           .addRow({9, 10, 11, 12});
+    matrix2.addRow({1, 1, 0, 1})
+           .addRow({1, 0, 1, 1})
+           .addRow({0, 1, 1, 1});
 
-    Matrix<double>::Qr qr = matrix2.decompQR();
+    matrix3.addRow({1, 1, 0})
+           .addRow({1, 0, 1})
+           .addRow({0, 1, 1})
+           .addRow({1, 0, 1});
+
+    
+    Matrix<double>::Qr qr = matrix3.decompQR();
 
     qr.orthogonal.print();
     std::cout << "\n";
     qr.upper.print();
 
+
+    return 0;
 }
