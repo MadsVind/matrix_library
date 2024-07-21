@@ -207,45 +207,6 @@ Matrix<T> Matrix<T>::rref(double tolerance) const {
 }
 
 template <typename T>
-std::vector<T> backSubstitution(Matrix<T> A, double tolerance) { // Doesn't work if pivot is not on diagonal
-    size_t rowAmount = A.getRowAmount();
-    size_t colAmount = A.getColAmount();
-
-    size_t rowAmountIndex = (rowAmount - 1);
-
-    std::vector<T> res(rowAmount);
-    T one = static_cast<T>(1);
-    T zero = static_cast<T>(0);
-    for (int row = rowAmountIndex; 0 <= row; --row) {
-        bool isEmpty = true;
-        int pivot = -1;
-        for (int col = row; col < colAmount; ++col) { 
-            if (std::abs(A[row][col]) > tolerance) {
-                isEmpty = false;
-                pivot = col;
-                break;
-            }
-        }
-
-        if (isEmpty) {
-            res[row] = one; 
-            continue;
-        }
-
-        T varSum = zero;
-        T pivotVal = A[row][pivot];
-
-        int pivotOffset = row - pivot;
-        for (int col = pivot + 1; col < colAmount; ++col) {
-           varSum -= (A[row][col] * res[col + pivotOffset]) / pivotVal; 
-        }
-        res[row] = varSum;
-    }
-    std::cout << "\n";
-    return res;
-}
-
-template <typename T>
 typename Matrix<T>::Qr Matrix<T>::decompQR() const {
     if (determinant() == 0) {
         std::cerr << "Can not use Gram-Schmidt method on matrix since it is linuarly dependent\n";
@@ -510,7 +471,7 @@ Matrix<T> operator*(const T& scalar, const Matrix<T>& B)  {
 }
 
 template <typename T>
-Matrix<T> Matrix<T>::pow(const T& exponent) const { // !!! Problem with getting correct eigen vectors 
+Matrix<T> Matrix<T>::pow(const T& exponent) const {  
     if (!isSquare()) throw std::invalid_argument("Can not take power of non square matrix");
 
     Matrix<T> A = Matrix<T>(*this);
@@ -524,10 +485,6 @@ Matrix<T> Matrix<T>::pow(const T& exponent) const { // !!! Problem with getting 
     Matrix<T> eigenMatrix = eigen.vectorVec;
     Matrix<T> inverseEigenMatrix = eigenMatrix.inverse();
     Matrix<T> diagonal = Matrix<T>(eigenValuesAmount, eigenValuesAmount, static_cast<T>(0));
-
-    for (int i = 0; i < eigenValuesAmount; ++i) {
-        std::cout << eigenValues[i] <<  " "; 
-    }
 
     for (int i = 0; i < eigenValuesAmount; ++i) {
         diagonal[i][i] = std::pow(eigenValues[i], absoluteExponent);
