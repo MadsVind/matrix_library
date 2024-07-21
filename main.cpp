@@ -67,26 +67,31 @@ int main() {
     Matrix<double> matrix1;
     Matrix<double> matrix2;
     Matrix<double> matrix3;
+    Matrix<double> matrix4;
 
-    matrix1.addRow({1, 1, 0})
-           .addRow({1, 0, 1})
-           .addRow({0, 1, 1});
+    matrix1.addRow({2, 0, 2, 0.6})
+           .addRow({3, 3, 4, -2})
+           .addRow({5, 5, 4, 2})
+           .addRow({-1, -2, 3.4, -1});
 
-    matrix2.addRow({1, 1, 0, 1})
-           .addRow({1, 0, 1, 1})
-           .addRow({0, 1, 1, 1});
+    matrix2.addRow({1, 0, 0})
+           .addRow({0, 1, 0})
+           .addRow({0, 0, 1});
 
-    matrix3.addRow({1, 1, 0})
-           .addRow({1, 0, 1})
-           .addRow({0, 1, 1})
-           .addRow({1, 0, 1});
+    matrix3.addRow({0, 2, 2})
+           .addRow({1, 2, 3})
+           .addRow({4, 4, 4});
 
-    
-    Matrix<double>::Qr qr = matrix3.decompQR();
+    matrix4.addRow({1, 2})
+           .addRow({5, 4});
 
-    qr.orthogonal.print();
+    Matrix<double>::Eigen eigen = matrix4.calcEigen();
+
+    for (int i = 0; i < eigen.valueVec.size(); ++i) {
+        std::cout << eigen.valueVec[i] << " ";
+    }
     std::cout << "\n";
-    qr.upper.print();
+    eigen.vectorVec.print();
 
 
     return 0;

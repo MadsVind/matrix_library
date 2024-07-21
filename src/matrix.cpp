@@ -305,27 +305,29 @@ typename Matrix<T>::Qr Matrix<T>::decompQR() const {
     return Matrix<T>::Qr(orthogonal, upper); 
 }
 
-
+// !!! unstabel might never converge
 template <typename T>
 typename Matrix<T>::Eigen Matrix<T>::calcEigen(double tolerance) const {
-    if (!isSquare()) {
-        std::cerr << "Can not calculate Eigen value and vector of non square matrix\n";
-        return Matrix<T>::Eigen(Matrix<T>(), std::vector<T>());
-    }
+    if (!isSquare()) throw std::invalid_argument("Can not calculate Eigen value and vector of non square matrix");
+
     Matrix<T> A = Matrix<T>(*this);
     size_t rowAmount = A.getRowAmount();
     Matrix<T>::Qr qr = A.decompQR();
     Matrix<T> eigenVectors = qr.orthogonal; 
 
-    A = qr.orthogonal * qr.upper;
+    std::vector<T> eigenValues;
+
+    A = qr.upper * qr.orthogonal;
+
     while (!A.isUpperTriangular(tolerance)) {
         Matrix<T>::Qr qr = A.decompQR();
-        A = qr.orthogonal * qr.upper;
+        A = qr.upper * qr.orthogonal ;
         eigenVectors = eigenVectors * qr.orthogonal;
     } 
-    std::vector<T> eigenValues;
-    for (size_t i = 0; i < rowAmount; ++i) {eigenValues.push_back(A[i][i]);}
 
+    for (size_t i = 0; i < rowAmount; ++i) {
+        eigenValues.push_back(A[i][i]);
+    }
     return Matrix<T>::Eigen(eigenVectors, eigenValues);
 }
 
@@ -394,23 +396,32 @@ T Matrix<T>::determinant() const {
 // get 1 then clear column (ex. get 1 in in 1st row 1st col, now clear rest of 1st col to 0, repeat for 2nd row 2nd col ect.)
 template <typename T>
 Matrix<T> Matrix<T>::inverse() const {
-    if (!isSquare()) {
-        std::cerr << "Can not get inverse of non square matrix \n";
-        return Matrix<T>();
-    }
-
-    if (determinant() == 0) {
-        std::cerr << "Can not get inverse of matrix with determinant of 0 \n";
-        return Matrix<T>();
-    }
+    if (!isSquare()) throw std::runtime_error("Can not get inverse of non square matrix");
 
     size_t size = getRowAmount();
     Matrix<T> iden = getIdentity(size);
     Matrix<T> org(*this);
 
-
     for (int i = 0; i < size; ++i) {
+
         T scalar = org[i][i];
+
+        bool isSingular = true;
+
+        if (scalar == 0) {
+            for (int j = i + 1; j < size; ++j) {
+                if (org[j][i] != 0) {
+                    isSingular = false;
+                    org.swapRow(i, j);
+                    iden.swapRow(i, j);
+                    scalar = org[i][i];
+                    break;
+                }
+            }
+        }
+        else isSingular = false;
+
+        if (isSingular) throw  std::runtime_error("Cannot get inverse of singular matrix");
         for (int j = 0; j < size; ++j) { 
             org[i][j] = org[i][j] / scalar;
             iden[i][j] = iden[i][j] / scalar;
@@ -419,6 +430,7 @@ Matrix<T> Matrix<T>::inverse() const {
         for (int j = 0; j < size; ++j) {
             if (i == j) continue;
             T scalar = org[j][i]; 
+            if (scalar == 0) continue;
             for (int k = 0; k < size; ++k) {
                 org[j][k] -= scalar * org[i][k];
                 iden[j][k] -= scalar * iden[i][k];
@@ -430,19 +442,19 @@ Matrix<T> Matrix<T>::inverse() const {
 
 template <typename T>
 Matrix<T> Matrix<T>::operator*(const Matrix<T>& B) const {
-    if (getColAmount() != B.getRowAmount()) {
-        std::cerr << "Matrix dimensions do not allow multiplication \n";
-        return Matrix<T>();
-    }
+    if (getColAmount() != B.getRowAmount()) throw std::invalid_argument("Matrix dimensions do not allow multiplication");
 
-    Matrix<T> product(getRowAmount(), B.getColAmount(), T()); 
-    for (int i = 0; i < getRowAmount(); ++i) {
-        for (int j = 0; j < B.getColAmount(); ++j) {
+    size_t rowAmount = getRowAmount();
+    size_t colAmount = B.getColAmount();
+
+    Matrix<T> product(rowAmount, colAmount, T()); 
+    for (int row = 0; row < rowAmount; ++row) {
+        for (int col = 0; col < colAmount; ++col) {
             T sum = T(); 
-            for (int k = 0; k < getColAmount(); ++k) { 
-                sum += data[k][j] * B[i][k];
+            for (int k = 0; k < colAmount; ++k) { 
+                sum += data[row][k] * B[k][col];
             }
-            product[i][j] = sum;
+            product[row][col] = sum;
         }
     }
     return product;
@@ -450,11 +462,20 @@ Matrix<T> Matrix<T>::operator*(const Matrix<T>& B) const {
 
 template <typename T>
 std::vector<T> Matrix<T>::operator*(const std::vector<T>& vec) const {
-    const Matrix<T>& A = *this;
-    Matrix<T> B;
-    B.addCol(vec);
-    Matrix<T> productMatrix = (A * B);
-    std::vector<T> product = productMatrix.getRow(0);
+    if (getColAmount() != vec.size()) throw  std::invalid_argument("Matrix dimensions do not allow multiplication");
+    
+    size_t rowAmount = getRowAmount();
+
+    std::vector<T> product(vec.size(), T()); 
+
+    for (int i = 0; i < vec.size(); ++i) {
+        T sum = T(); 
+        for (int j = 0; j < rowAmount; ++j) {
+            sum += data[i][j] * vec[j];
+        }
+        product[i] = sum;
+    }
+
     return product;
 }
 
@@ -464,14 +485,15 @@ Matrix<T> Matrix<T>::operator*(const T& scalar) const  {
     size_t rowAmount = getRowAmount();
 
     Matrix<T> product(rowAmount, colAmount);
-    for (size_t i = 0; i < rowAmount; ++i) {
-        for (size_t j = 0; j < colAmount; ++j) {
-            product[i][j] = scalar * getElement(i, j); 
+    for (size_t row = 0; row < rowAmount; ++row) {
+        for (size_t col = 0; col < colAmount; ++col) {
+            product[row][col] = scalar * data[row][col]; 
         }
     }
     return product;
 }
 
+// !!! doesn't work
 template <typename T>
 std::vector<T> operator*(const std::vector<T>& vec, const Matrix<T>& B)  {
     Matrix<T> A;
@@ -481,6 +503,7 @@ std::vector<T> operator*(const std::vector<T>& vec, const Matrix<T>& B)  {
     return product;
 }
 
+// !!! doesn't work
 template <typename T>
 Matrix<T> operator*(const T& scalar, const Matrix<T>& B)  {
     return B * scalar;
@@ -488,10 +511,7 @@ Matrix<T> operator*(const T& scalar, const Matrix<T>& B)  {
 
 template <typename T>
 Matrix<T> Matrix<T>::pow(const T& exponent) const { // !!! Problem with getting correct eigen vectors 
-    if (!isSquare()) {
-        std::cerr << "Can not take power of non square matrix\n";
-        return Matrix<T>();
-    }
+    if (!isSquare()) throw std::invalid_argument("Can not take power of non square matrix");
 
     Matrix<T> A = Matrix<T>(*this);
     if (exponent < 0) A = A.inverse();
@@ -508,20 +528,10 @@ Matrix<T> Matrix<T>::pow(const T& exponent) const { // !!! Problem with getting 
     for (int i = 0; i < eigenValuesAmount; ++i) {
         std::cout << eigenValues[i] <<  " "; 
     }
-    std::cout << "\n";
-
-    std::cout << "A = PDP^-1\n";
 
     for (int i = 0; i < eigenValuesAmount; ++i) {
         diagonal[i][i] = std::pow(eigenValues[i], absoluteExponent);
     }
-
-    eigenMatrix.print();
-    std::cout << "\n";
-    diagonal.print();
-    std::cout << "\n";
-    inverseEigenMatrix.print();
-    std::cout << "\n";
 
     return (eigenMatrix * diagonal * inverseEigenMatrix);
 }

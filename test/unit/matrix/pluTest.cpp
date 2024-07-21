@@ -1,0 +1,98 @@
+#include <matrixTest.hpp>
+
+// Test cases for decompPLU method
+TEST_CASE("Matrix decompPLU method", "[decompPLU]") {
+    Matrix<double> matrix1;
+    Matrix<double> matrix2;
+    Matrix<double> matrix3;
+
+    matrix1.addRow({2, 0, 2, 0.6})
+           .addRow({3, 3, 4, -2})
+           .addRow({5, 5, 4, 2})
+           .addRow({-1, -2, 3.4, -1});
+
+    matrix2.addRow({1, 0, 0})
+           .addRow({0, 1, 0})
+           .addRow({0, 0, 1});
+
+    matrix3.addRow({0, 2, 2})
+           .addRow({1, 2, 3})
+           .addRow({4, 4, 4});
+
+    SECTION("Simple matrix") {
+        std::cout << "1\n";
+        Matrix<double>::Plu plu = matrix1.decompPLU();
+        std::cout << "2\n";
+
+        // Expected permutation matrix
+        Matrix<double> expectedPerm;
+        expectedPerm.addRow({0, 0, 1, 0})
+                    .addRow({1, 0, 0, 0})
+                    .addRow({0, 0, 0, 1})
+                    .addRow({0, 1, 0, 0});
+        std::cout << "3\n";
+
+        // Expected lower matrix
+        Matrix<double> expectedLower;
+        expectedLower.addRow({1,    0,   0,   0})
+                     .addRow({0.4,  1,   0,   0})
+                     .addRow({-0.2, 0.5, 1,   0})
+                     .addRow({0.6,  0,   0.4, 1});
+        std::cout << "4\n";
+
+        // Expected upper matrix
+        Matrix<double> expectedUpper;
+        expectedUpper.addRow({5,  5, 4,     2})
+                     .addRow({0, -2, 0.4,  -0.2})
+                     .addRow({0,  0, 4,    -0.5})
+                     .addRow({0,  0, 0,    -3});
+        std::cout << "5\n";
+
+        // Compare permutation, lower, and upper matrices
+        REQUIRE(checkMatrixApprox(plu.permutation, expectedPerm));
+        REQUIRE(checkMatrixApprox(plu.lower, expectedLower));
+        REQUIRE(checkMatrixApprox(plu.upper, expectedUpper));
+    }
+
+    SECTION("Identity matrix") {
+        Matrix<double>::Plu plu = matrix2.decompPLU();
+
+        // Expected permutation, lower, and upper matrices are identity matrices
+        Matrix<double> expectedIdentity;
+        expectedIdentity.addRow({1, 0, 0})
+                        .addRow({0, 1, 0})
+                        .addRow({0, 0, 1});
+
+        // Compare permutation, lower, and upper matrices
+        REQUIRE(checkMatrixApprox(plu.permutation, expectedIdentity));
+        REQUIRE(checkMatrixApprox(plu.lower, expectedIdentity));
+        REQUIRE(checkMatrixApprox(plu.upper, expectedIdentity));
+    }
+
+    SECTION("Matrix requiring row swaps") {
+        Matrix<double>::Plu plu = matrix3.decompPLU();
+
+        // Expected permutation matrix
+        Matrix<double> expectedPerm;
+        expectedPerm.addRow({0, 0, 1})
+                    .addRow({1, 0, 0})
+                    .addRow({0, 1, 0});
+
+        // Expected lower matrix
+        Matrix<double> expectedLower;
+        expectedLower.addRow({1, 0, 0})
+                     .addRow({0, 1, 0})
+                     .addRow({0.25, 0.5, 1});
+
+        // Expected upper matrix
+        Matrix<double> expectedUpper;
+        expectedUpper.addRow({4, 4, 4})
+                     .addRow({0, 2, 2})
+                     .addRow({0, 0, 1});
+
+        // Compare permutation, lower, and upper matrices
+        REQUIRE(checkMatrixApprox(plu.permutation, expectedPerm));
+        REQUIRE(checkMatrixApprox(plu.lower, expectedLower));
+        REQUIRE(checkMatrixApprox(plu.upper, expectedUpper));
+    }
+}
