@@ -68,6 +68,8 @@ int main() {
     Matrix<double> matrix2;
     Matrix<double> matrix3;
     Matrix<double> matrix4;
+    Matrix<double> matrix5;
+    Matrix<double> matrix6;
 
     matrix1.addRow({2, 0, 2, 0.6})
            .addRow({3, 3, 4, -2})
@@ -85,14 +87,54 @@ int main() {
     matrix4.addRow({1, 2})
            .addRow({5, 4});
 
-    Matrix<double>::Eigen eigen = matrix4.calcEigen();
+    matrix5.addRow({1, 1, 0})
+           .addRow({1, 0, 1})
+           .addRow({0, 1, 1})
+           .addRow({1, 0, 1});
 
-    for (int i = 0; i < eigen.valueVec.size(); ++i) {
-        std::cout << eigen.valueVec[i] << " ";
-    }
+    matrix6.addRow({1, 1})
+           .addRow({1, -1});
+
+    Matrix<double>::Qr qu = matrix5.qr();
+
+    //std::cout << "\n\n Determinant: " << matrix5.determinant() << "\n";
+
+    //qr.orthogonal.print();
+    //std::cout << "\n";
+    //qr.upper.print();
+
+
+    Matrix<double> q = qu.orthogonal;
+    Matrix<double> r = qu.upper;
+    
+//    q.addRow({0.577, 0.516, -0.632})
+//     .addRow({0.577, -0.258, 0.316})
+//     .addRow({0, 0.775, 0.632})
+//     .addRow({0.577, -0.258, 0.316});
+//
+//    r.addRow({1.732, 0.577, 1.155})
+//     .addRow({0,     1.291, 0.258})
+//     .addRow({0,     0,     1.265});
+
+    std::cout << "reconstructed A\n\n";
+
+    (q * r).print(0.001);
+
+    std::cout << "\nr:\n";
+    r.print();
+    
+    std::cout << "\nq.T:\n";
+    q.transpose().print();
+    
+    std::cout << "\nq:\n";
+    q.print();
+
+    
     std::cout << "\n";
-    eigen.vectorVec.print();
 
+    (q.transpose() * q).print(0.001);
+
+    std::cout << "3\n\n";
 
     return 0;
 }

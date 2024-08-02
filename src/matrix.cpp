@@ -207,7 +207,12 @@ Matrix<T> Matrix<T>::rref(double tolerance) const {
 }
 
 template <typename T>
-typename Matrix<T>::Qr Matrix<T>::decompQR() const {
+typename Matrix<T>::Qr Matrix<T>::qr() const {
+    return givensRotations();
+}
+
+template <typename T>
+typename Matrix<T>::Qr Matrix<T>::gramSmith() const {
     if (determinant() == 0) {
         std::cerr << "Can not use Gram-Schmidt method on matrix since it is linuarly dependent\n";
         return Matrix<T>::Qr(Matrix<T>(), Matrix<T>()); 
@@ -266,14 +271,88 @@ typename Matrix<T>::Qr Matrix<T>::decompQR() const {
     return Matrix<T>::Qr(orthogonal, upper); 
 }
 
+
+template <typename T>
+std::vector<T> scaleVector(std::vector<T> vec, T scalar) {
+    std::vector<T> newVec;
+    for (size_t i = 0; i < vec.size(); ++i) {
+        newVec.push_back(vec[i] * scalar);
+    }
+    return newVec;
+}
+
+template <typename T>
+std::vector<T> plusVector(std::vector<T> vec1, std::vector<T> vec2) {
+    if (vec1.size() != vec2.size()) throw std::invalid_argument("The vectors was not of correct size");
+    size_t size = vec1.size();
+    std::vector<T> newVec;
+    for (size_t i = 0; i < size; ++i) {
+        newVec.push_back(vec1[i] + vec2[i]);
+    }
+    return newVec;
+}
+
+//! think if the matrix is tall then the extra lower rows or R and corresponding columns of Q can be safely removed
+template <typename T>
+typename Matrix<T>::Qr Matrix<T>::givensRotations() const {
+    size_t rowAmount = getRowAmount();
+    size_t colAmount = getColAmount();
+    Matrix<T> R = Matrix<T>(*this);
+    Matrix<T> Q = getIdentity(rowAmount);
+
+    T zero = static_cast<T>(0);
+    T minusOne = static_cast<T>(-1);
+
+    for (size_t i = 0; i < colAmount; ++i) {
+        for (size_t j = i + 1; j < rowAmount; ++j) {
+            T a = R[i][i];
+            T b = R[j][i];
+            if (b == zero) continue;
+
+            T hypotin = std::hypot(a, b);
+            T cos = a / hypotin;
+            T sin = -b / hypotin;
+
+            std::vector<T> tempVector = plusVector(scaleVector(R[i], cos), scaleVector(R[j], -sin));
+            R[j] = plusVector(scaleVector(R[i], sin), scaleVector(R[j], cos));
+            R[i] = tempVector;
+
+            tempVector = plusVector(scaleVector(Q.getCol(i), cos), scaleVector(Q.getCol(j), -sin));
+            Q.setCol(j, plusVector(scaleVector(Q.getCol(i), sin), scaleVector(Q.getCol(j), cos)));
+            Q.setCol(i, tempVector); 
+
+            // Reverse signage if diagonal is minus (R[i][i])
+            if (R[i][i] < 0) {
+                R.setRow(i, scaleVector(R.getRow(i), minusOne));
+                Q.setCol(i, scaleVector(Q.getCol(i), minusOne));
+            }
+        }
+    }
+
+        // Ensure positive diagonal elements in R
+    size_t leastDimension = std::min(R.getRowAmount(), R.getColAmount());
+    for (size_t i = 0; i < leastDimension; ++i) {
+        if (R[i][i] < 0) {
+            for (size_t j = 0; j < R.getColAmount(); ++j) {
+                R[i][j] = -R[i][j];
+            }
+            for (size_t j = 0; j < Q.getRowAmount(); ++j) {
+                Q[j][i] = -Q[j][i];
+            }
+        }
+    }
+
+    return Matrix::Qr(Q, R);
+}
+
 // !!! unstabel might never converge
 template <typename T>
-typename Matrix<T>::Eigen Matrix<T>::calcEigen(double tolerance) const {
+typename Matrix<T>::Eigen Matrix<T>::eigen(double tolerance) const {
     if (!isSquare()) throw std::invalid_argument("Can not calculate Eigen value and vector of non square matrix");
 
     Matrix<T> A = Matrix<T>(*this);
     size_t rowAmount = A.getRowAmount();
-    Matrix<T>::Qr qr = A.decompQR();
+    Matrix<T>::Qr qr = A.qr();
     Matrix<T> eigenVectors = qr.orthogonal; 
 
     std::vector<T> eigenValues;
@@ -281,7 +360,7 @@ typename Matrix<T>::Eigen Matrix<T>::calcEigen(double tolerance) const {
     A = qr.upper * qr.orthogonal;
 
     while (!A.isUpperTriangular(tolerance)) {
-        Matrix<T>::Qr qr = A.decompQR();
+        Matrix<T>::Qr qr = A.qr();
         A = qr.upper * qr.orthogonal ;
         eigenVectors = eigenVectors * qr.orthogonal;
     } 
@@ -293,7 +372,7 @@ typename Matrix<T>::Eigen Matrix<T>::calcEigen(double tolerance) const {
 }
 
 template <typename T>
-typename Matrix<T>::Plu Matrix<T>::decompPLU() const {
+typename Matrix<T>::Plu Matrix<T>::plu() const {
     Matrix<T> perm = getIdentity(rowAmount);
     Matrix<T> lower = Matrix<T>(perm);
     Matrix<T> upper = Matrix<T>(*this);
@@ -343,14 +422,14 @@ typename Matrix<T>::Plu Matrix<T>::decompPLU() const {
 
 template <typename T>
 T Matrix<T>::determinant() const {
-    Matrix<T>::Plu plu = decompPLU();
-    Matrix<T> upper = plu.upper;
+    Matrix<T>::Plu lu = plu();
+    Matrix<T> upper = lu.upper;
     size_t size = upper.getRowAmount();
     T determinant = upper[0][0];
     for (int i = 1; i < size; ++i) {
         determinant *= upper[i][i];
     }
-    if (plu.permutationAmount % 2 != 0) determinant *= -1;
+    if (lu.permutationAmount % 2 != 0) determinant *= -1;
     return determinant;
 }
 
@@ -478,7 +557,7 @@ Matrix<T> Matrix<T>::pow(const T& exponent) const {
     if (exponent < 0) A = A.inverse();
     T absoluteExponent = std::abs(exponent);
  
-    Matrix<T>::Eigen eigen = A.calcEigen();
+    Matrix<T>::Eigen eigen = A.eigen();
     std::vector<T> eigenValues = eigen.valueVec;
     size_t eigenValuesAmount = eigenValues.size();
 
@@ -547,7 +626,7 @@ void Matrix<T>::assignElement(size_t row, size_t col, T el) {
 
 template <typename T>
 Matrix<T>& Matrix<T>::addRow(std::vector<T> row) {
-    if (row.size() != colAmount && colAmount != 0) throw std::runtime_error("Invalid row size");
+    if (row.size() != colAmount && colAmount != 0) throw std::runtime_error("Cannot add row of invalid size");
     if (colAmount == 0) colAmount = row.size();
     data.push_back(row);
     rowAmount++;
@@ -557,7 +636,7 @@ Matrix<T>& Matrix<T>::addRow(std::vector<T> row) {
 
 template <typename T>
 Matrix<T>& Matrix<T>::addCol(std::vector<T> col) {
-    if (col.size() != rowAmount && rowAmount != 0) throw std::runtime_error("Invalid row size");
+    if (col.size() != rowAmount && rowAmount != 0) throw std::runtime_error("Cannot add col of invalid size");
     bool isEmpty = rowAmount == 0;
     if (isEmpty) rowAmount = col.size();
     for (int i = 0; i < rowAmount; i++) {
@@ -571,7 +650,7 @@ Matrix<T>& Matrix<T>::addCol(std::vector<T> col) {
 template <typename T>
 Matrix<T>& Matrix<T>::setRow(size_t rowIndex, std::vector<T> row) {
     if (rowIndex >= rowAmount) throw std::runtime_error("Tried to set non existing row");
-    if (row.size() != colAmount) throw std::runtime_error("Invalid row size");
+    if (row.size() != colAmount) throw std::runtime_error("Cannot set row of wrong size size");
     for (int i = 0; i < colAmount; ++i) {
         data[rowIndex][i] = row[i];
     }
@@ -609,10 +688,11 @@ Matrix<T>& Matrix<T>::swapCol(size_t colA, size_t colB) {
 }
 
 template <typename T>
-void Matrix<T>::print() const {
+void Matrix<T>::print(double tolerance) const {
     for (int i = 0; i < getRowAmount(); i++) {
         for (int j = 0; j < getColAmount(); j++) {
-            std::cout << data[i][j] << " ";
+            if (std::abs(data[i][j]) < tolerance) std::cout << 0 << " ";
+            else std::cout << data[i][j] << " ";
         }
         std::cout << std::endl;
     }

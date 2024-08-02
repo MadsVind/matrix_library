@@ -1,0 +1,44 @@
+
+// Assumed methodicl clean but ineffcient givens rotations
+//template <typename T>
+//typename Matrix<T>::Qr Matrix<T>::decompQR2() const {
+//    size_t rowAmount = getRowAmount();
+//    size_t colAmount = getColAmount();
+//    Matrix<T> R = Matrix<T>(*this);
+//    Matrix<T> identity = getIdentity(rowAmount);
+//    Matrix<T> Q = Matrix<T>(identity);
+//
+//    T zero = static_cast<T>(0);
+//
+//    for (size_t i = 0; i < colAmount - 1; ++i) {
+//        for (size_t j = i + 1; j < rowAmount; ++j) {
+//            T a = R[i][i];
+//            T b = R[j][i];
+//            if (b == zero) continue;
+//
+//            T hypotin = std::hypot(a, b);
+//            T cos = a / hypotin;
+//            T sin = -b / hypotin;
+//
+//            Matrix<T> rotation = Matrix<T>(identity);
+//
+//            rotation[i][i] = cos;
+//            rotation[i][j] = -sin;
+//            rotation[j][i] = sin;
+//            rotation[j][j] = cos;
+//
+//            std::cout << "\n\n";
+//            rotation.print();
+//            // Make rotation matrix here
+//            R = rotation * R;
+//            Q = Q * rotation.transpose();
+//            
+//            std::cout << "\n";
+//            R.print();
+//            std::cout << "\n";
+//            Q.print();
+//            
+//        }
+//    }
+//    return Matrix::Qr(Q, R);
+//}

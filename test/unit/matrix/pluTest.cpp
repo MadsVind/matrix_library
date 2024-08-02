@@ -21,7 +21,7 @@ TEST_CASE("Matrix decompPLU method", "[decompPLU]") {
 
     SECTION("Simple matrix") {
         std::cout << "1\n";
-        Matrix<double>::Plu plu = matrix1.decompPLU();
+        Matrix<double>::Plu lu = matrix1.plu();
         std::cout << "2\n";
 
         // Expected permutation matrix
@@ -49,13 +49,13 @@ TEST_CASE("Matrix decompPLU method", "[decompPLU]") {
         std::cout << "5\n";
 
         // Compare permutation, lower, and upper matrices
-        REQUIRE(checkMatrixApprox(plu.permutation, expectedPerm));
-        REQUIRE(checkMatrixApprox(plu.lower, expectedLower));
-        REQUIRE(checkMatrixApprox(plu.upper, expectedUpper));
+        REQUIRE(checkMatrixApprox(lu.permutation, expectedPerm));
+        REQUIRE(checkMatrixApprox(lu.lower, expectedLower));
+        REQUIRE(checkMatrixApprox(lu.upper, expectedUpper));
     }
 
     SECTION("Identity matrix") {
-        Matrix<double>::Plu plu = matrix2.decompPLU();
+        Matrix<double>::Plu lu = matrix2.plu();
 
         // Expected permutation, lower, and upper matrices are identity matrices
         Matrix<double> expectedIdentity;
@@ -64,13 +64,13 @@ TEST_CASE("Matrix decompPLU method", "[decompPLU]") {
                         .addRow({0, 0, 1});
 
         // Compare permutation, lower, and upper matrices
-        REQUIRE(checkMatrixApprox(plu.permutation, expectedIdentity));
-        REQUIRE(checkMatrixApprox(plu.lower, expectedIdentity));
-        REQUIRE(checkMatrixApprox(plu.upper, expectedIdentity));
+        REQUIRE(checkMatrixApprox(lu.permutation, expectedIdentity));
+        REQUIRE(checkMatrixApprox(lu.lower, expectedIdentity));
+        REQUIRE(checkMatrixApprox(lu.upper, expectedIdentity));
     }
 
     SECTION("Matrix requiring row swaps") {
-        Matrix<double>::Plu plu = matrix3.decompPLU();
+        Matrix<double>::Plu lu = matrix3.plu();
 
         // Expected permutation matrix
         Matrix<double> expectedPerm;
@@ -91,8 +91,8 @@ TEST_CASE("Matrix decompPLU method", "[decompPLU]") {
                      .addRow({0, 0, 1});
 
         // Compare permutation, lower, and upper matrices
-        REQUIRE(checkMatrixApprox(plu.permutation, expectedPerm));
-        REQUIRE(checkMatrixApprox(plu.lower, expectedLower));
-        REQUIRE(checkMatrixApprox(plu.upper, expectedUpper));
+        REQUIRE(checkMatrixApprox(lu.permutation, expectedPerm));
+        REQUIRE(checkMatrixApprox(lu.lower, expectedLower));
+        REQUIRE(checkMatrixApprox(lu.upper, expectedUpper));
     }
 }

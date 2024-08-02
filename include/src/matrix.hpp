@@ -89,9 +89,11 @@ public:
 
     Matrix<T> ref(double tolerance = std::numeric_limits<T>::min()) const;
     Matrix<T> rref(double tolerance = std::numeric_limits<T>::min()) const;
-    Matrix<T>::Eigen calcEigen(double tolerance = 0.00000000000000000001) const; // magick number for tolerance to work apperently. !!! Test this
-    Matrix<T>::Qr decompQR() const;
-    Matrix<T>::Plu decompPLU() const;
+    Matrix<T>::Eigen eigen(double tolerance = 0.00000000000000000001) const; //! magick number for tolerance to work apperently. !!! Test this
+    Matrix<T>::Qr qr() const;
+    Matrix<T>::Qr givensRotations() const;
+    Matrix<T>::Qr gramSmith() const;
+    Matrix<T>::Plu plu() const;
 
     std::vector<T>& operator[](int index);
 
@@ -116,7 +118,7 @@ public:
     Matrix<T>& swapRow(size_t rowA, size_t rowB);
     Matrix<T>& swapCol(size_t colA, size_t colB);
 
-    void print() const;
+    void print(double tolerance = 0) const;
     
     bool isSquare() const;
 

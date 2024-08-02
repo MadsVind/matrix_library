@@ -23,49 +23,53 @@ TEST_CASE("Matrix qr decomposition method", "[qr]") {
            .addRow({1, 0, 1});
 
     SECTION("Normal case with square matrix") {
-        Matrix<double>::Qr qr = matrix1.decompQR();
+        Matrix<double>::Qr qu = matrix1.qr();
 
          // Q
-        REQUIRE(checkVecApprox(qr.orthogonal.getRow(0), {0.707107, 0.408248, -0.57735}));
-        REQUIRE(checkVecApprox(qr.orthogonal.getRow(1), {0.707107, -0.408248, 0.57735}));
-        REQUIRE(checkVecApprox(qr.orthogonal.getRow(2), {0, 0.816497, 0.57735 }));
+        REQUIRE(checkVecApprox(qu.orthogonal.getRow(0), {0.707107, 0.408248, -0.57735}));
+        REQUIRE(checkVecApprox(qu.orthogonal.getRow(1), {0.707107, -0.408248, 0.57735}));
+        REQUIRE(checkVecApprox(qu.orthogonal.getRow(2), {0, 0.816497, 0.57735 }));
         
         // R
-        REQUIRE(checkVecApprox(qr.upper.getRow(0), {1.41421, 0.707107, 0.707107 }));
-        REQUIRE(checkVecApprox(qr.upper.getRow(1), {0, 1.22474, 0.408248}));
-        REQUIRE(checkVecApprox(qr.upper.getRow(2), {0, 0, 1.1547}));
+        REQUIRE(checkVecApprox(qu.upper.getRow(0), {1.41421, 0.707107, 0.707107 }));
+        REQUIRE(checkVecApprox(qu.upper.getRow(1), {0, 1.22474, 0.408248}));
+        REQUIRE(checkVecApprox(qu.upper.getRow(2), {0, 0, 1.1547}));
         
     }
 
     SECTION("Normal case with rectangular matrix") {
-        Matrix<double>::Qr qr = matrix2.decompQR();
+        Matrix<double>::Qr qu = matrix2.qr();
 
         // Q
-        REQUIRE(checkVecApprox(qr.orthogonal.getRow(0), {0.707107, 0.408248, -0.57735}));
-        REQUIRE(checkVecApprox(qr.orthogonal.getRow(1), {0.707107, -0.408248, 0.57735}));
-        REQUIRE(checkVecApprox(qr.orthogonal.getRow(2), {0, 0.816497, 0.57735}));
+        REQUIRE(checkVecApprox(qu.orthogonal.getRow(0), {0.707107, 0.408248, -0.57735}));
+        REQUIRE(checkVecApprox(qu.orthogonal.getRow(1), {0.707107, -0.408248, 0.57735}));
+        REQUIRE(checkVecApprox(qu.orthogonal.getRow(2), {0, 0.816497, 0.57735}));
         
         // R
-        REQUIRE(checkVecApprox(qr.upper.getRow(0), {1.41421, 0.707107, 0.707107, 1.41421}));
-        REQUIRE(checkVecApprox(qr.upper.getRow(1), {0, 1.22474, 0.408248, 0.816497}));
-        REQUIRE(checkVecApprox(qr.upper.getRow(2), {0, 0, 1.1547, 0.57735}));
+        REQUIRE(checkVecApprox(qu.upper.getRow(0), {1.41421, 0.707107, 0.707107, 1.41421}));
+        REQUIRE(checkVecApprox(qu.upper.getRow(1), {0, 1.22474, 0.408248, 0.816497}));
+        REQUIRE(checkVecApprox(qu.upper.getRow(2), {0, 0, 1.1547, 0.57735}));
         
     }
 
     SECTION("Normal case with tall matrix") {
-        Matrix<double>::Qr qr = matrix3.decompQR();
+        Matrix<double>::Qr qu = matrix3.qr();
+
+        qu.orthogonal.print();
+        std::cout << "\n";
+        qu.upper.print();
 
         // Q
-        REQUIRE(checkVecApprox(qr.orthogonal.getRow(0), {0.57735, 0.516398, -0.632456, 0}));
-        REQUIRE(checkVecApprox(qr.orthogonal.getRow(1), {0.57735, -0.258199, 0.316228, 0}));
-        REQUIRE(checkVecApprox(qr.orthogonal.getRow(2), {0, 0.774597, 0.632456, 0 }));
-        REQUIRE(checkVecApprox(qr.orthogonal.getRow(3), {0.57735, -0.258199, 0.316228, 0}));
+        REQUIRE(checkVecApprox(qu.orthogonal.getRow(0), {0.57735, 0.516398, -0.632456, 0}));
+        REQUIRE(checkVecApprox(qu.orthogonal.getRow(1), {0.57735, -0.258199, 0.316228, 0.707107}));
+        REQUIRE(checkVecApprox(qu.orthogonal.getRow(2), {0, 0.774597, 0.632456, 0}));
+        REQUIRE(checkVecApprox(qu.orthogonal.getRow(3), {0.57735, -0.258199, 0.316228, -0.707107}));
         
         // R
-        REQUIRE(checkVecApprox(qr.upper.getRow(0), {1.73205, 0.57735, 1.1547}));
-        REQUIRE(checkVecApprox(qr.upper.getRow(1), {0, 1.29099, 0.258199}));
-        REQUIRE(checkVecApprox(qr.upper.getRow(2), {0, 0, 1.26491}));
-        REQUIRE(checkVecApprox(qr.upper.getRow(3), {0, 0, 0}));
+        REQUIRE(checkVecApprox(qu.upper.getRow(0), {1.73205, 0.57735, 1.1547}));
+        REQUIRE(checkVecApprox(qu.upper.getRow(1), {0, 1.29099, 0.258199}));
+        REQUIRE(checkVecApprox(qu.upper.getRow(2), {0, 0, 1.26491}));
+        REQUIRE(checkVecApprox(qu.upper.getRow(3), {0, 0, 0}));
     }
 
 }

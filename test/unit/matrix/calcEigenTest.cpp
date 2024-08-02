@@ -20,7 +20,7 @@ TEST_CASE("Matrix calcEigen method", "[calcEigen]") {
            .addRow({0, -1, 4});
 
     SECTION("Normal case with square matrix") {
-        Matrix<double>::Eigen eigen = matrix1.calcEigen(1e-9);
+        Matrix<double>::Eigen eigen = matrix1.eigen(1e-9);
 
         // Expected eigenvalues for the given matrix
         std::vector<double> expectedEigenValues = {16.1168, -1.11684, 0};
@@ -30,7 +30,7 @@ TEST_CASE("Matrix calcEigen method", "[calcEigen]") {
     }
 
     SECTION("Diagonal matrix") {
-        Matrix<double>::Eigen eigen = matrix2.calcEigen(1e-9);
+        Matrix<double>::Eigen eigen = matrix2.eigen(1e-9);
 
         // Expected eigenvalues for the given matrix
         std::vector<double> expectedEigenValues = {1, 2, 3};
@@ -57,6 +57,6 @@ TEST_CASE("Matrix calcEigen method", "[calcEigen]") {
         nonSquareMatrix.addRow({1, 2, 3})
                        .addRow({4, 5, 6});
 
-        REQUIRE_THROWS(nonSquareMatrix.calcEigen(1e-9));
+        REQUIRE_THROWS(nonSquareMatrix.eigen(1e-9));
     }
 }
