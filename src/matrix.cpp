@@ -305,43 +305,33 @@ typename Matrix<T>::Qr Matrix<T>::givensRotations() const {
 
     for (size_t i = 0; i < colAmount; ++i) {
         for (size_t j = i + 1; j < rowAmount; ++j) {
+            // Getting the cos and sin from the diagonal of the column where we try to make element 0 in R (cos and sin is used in rotation matrix G)
             T a = R[i][i];
             T b = R[j][i];
-            if (b == zero) continue;
+            if (b == zero) continue; // No need to zero already zero element.
 
             T hypotin = std::hypot(a, b);
             T cos = a / hypotin;
             T sin = -b / hypotin;
 
+            // Apply the active part of rotation matrix on relevant rows of R (R * G1 * G2 etc. | where G is rotation matrix)
             std::vector<T> tempVector = plusVector(scaleVector(R[i], cos), scaleVector(R[j], -sin));
             R[j] = plusVector(scaleVector(R[i], sin), scaleVector(R[j], cos));
             R[i] = tempVector;
 
+            
+            // Apply the active part of rotation matrix on relevant cols of Q (is cols since we transpose to get Q from rotation matrix ie Q = G1.T * G2.T etc. | where G is rotation matrix)
             tempVector = plusVector(scaleVector(Q.getCol(i), cos), scaleVector(Q.getCol(j), -sin));
             Q.setCol(j, plusVector(scaleVector(Q.getCol(i), sin), scaleVector(Q.getCol(j), cos)));
             Q.setCol(i, tempVector); 
 
-            // Reverse signage if diagonal is minus (R[i][i])
-            if (R[i][i] < 0) {
-                R.setRow(i, scaleVector(R.getRow(i), minusOne));
-                Q.setCol(i, scaleVector(Q.getCol(i), minusOne));
-            }
+        }
+        // Flip signage if diagonal values is negative 
+        if (i < rowAmount && R[i][i] < 0) {
+            R.setRow(i, scaleVector(R.getRow(i), minusOne));
+            Q.setCol(i, scaleVector(Q.getCol(i), minusOne));
         }
     }
-
-        // Ensure positive diagonal elements in R
-    size_t leastDimension = std::min(R.getRowAmount(), R.getColAmount());
-    for (size_t i = 0; i < leastDimension; ++i) {
-        if (R[i][i] < 0) {
-            for (size_t j = 0; j < R.getColAmount(); ++j) {
-                R[i][j] = -R[i][j];
-            }
-            for (size_t j = 0; j < Q.getRowAmount(); ++j) {
-                Q[j][i] = -Q[j][i];
-            }
-        }
-    }
-
     return Matrix::Qr(Q, R);
 }
 

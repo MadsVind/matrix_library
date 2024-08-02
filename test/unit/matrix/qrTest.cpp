@@ -40,6 +40,10 @@ TEST_CASE("Matrix qr decomposition method", "[qr]") {
     SECTION("Normal case with rectangular matrix") {
         Matrix<double>::Qr qu = matrix2.qr();
 
+        qu.orthogonal.print();
+        std::cout << "\n";
+        qu.upper.print();
+
         // Q
         REQUIRE(checkVecApprox(qu.orthogonal.getRow(0), {0.707107, 0.408248, -0.57735}));
         REQUIRE(checkVecApprox(qu.orthogonal.getRow(1), {0.707107, -0.408248, 0.57735}));
@@ -54,10 +58,6 @@ TEST_CASE("Matrix qr decomposition method", "[qr]") {
 
     SECTION("Normal case with tall matrix") {
         Matrix<double>::Qr qu = matrix3.qr();
-
-        qu.orthogonal.print();
-        std::cout << "\n";
-        qu.upper.print();
 
         // Q
         REQUIRE(checkVecApprox(qu.orthogonal.getRow(0), {0.57735, 0.516398, -0.632456, 0}));
