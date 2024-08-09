@@ -2,7 +2,7 @@
 #include <matrixTest.hpp>
 
 // Test cases for calcEigen method
-TEST_CASE("Matrix calcEigen method", "[calcEigen]") {
+TEST_CASE("Matrix eigen method", "[unit_test]") {
     Matrix<double> matrix1;
     Matrix<double> matrix2;
     Matrix<double> matrix3;

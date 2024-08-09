@@ -1,6 +1,6 @@
 #include <matrixTest.hpp>
 
-TEST_CASE("Matrix multiplication operator* works correctly", "[operator*]") {
+TEST_CASE("Matrix multiplication operator* works correctly", "[unit_test]") {
     Matrix<double> matrix1;
     Matrix<double> matrix2;
     Matrix<double> expectedMatrix;

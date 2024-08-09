@@ -1,7 +1,7 @@
 #include <matrixTest.hpp>
 
 // Test cases for decompPLU method
-TEST_CASE("Matrix decompPLU method", "[decompPLU]") {
+TEST_CASE("Matrix plu method", "[unit_test]") {
     Matrix<double> matrix1;
     Matrix<double> matrix2;
     Matrix<double> matrix3;
@@ -20,25 +20,19 @@ TEST_CASE("Matrix decompPLU method", "[decompPLU]") {
            .addRow({4, 4, 4});
 
     SECTION("Simple matrix") {
-        std::cout << "1\n";
         Matrix<double>::Plu lu = matrix1.plu();
-        std::cout << "2\n";
-
         // Expected permutation matrix
         Matrix<double> expectedPerm;
         expectedPerm.addRow({0, 0, 1, 0})
                     .addRow({1, 0, 0, 0})
                     .addRow({0, 0, 0, 1})
                     .addRow({0, 1, 0, 0});
-        std::cout << "3\n";
-
         // Expected lower matrix
         Matrix<double> expectedLower;
         expectedLower.addRow({1,    0,   0,   0})
                      .addRow({0.4,  1,   0,   0})
                      .addRow({-0.2, 0.5, 1,   0})
                      .addRow({0.6,  0,   0.4, 1});
-        std::cout << "4\n";
 
         // Expected upper matrix
         Matrix<double> expectedUpper;
@@ -46,7 +40,6 @@ TEST_CASE("Matrix decompPLU method", "[decompPLU]") {
                      .addRow({0, -2, 0.4,  -0.2})
                      .addRow({0,  0, 4,    -0.5})
                      .addRow({0,  0, 0,    -3});
-        std::cout << "5\n";
 
         // Compare permutation, lower, and upper matrices
         REQUIRE(checkMatrixApprox(lu.permutation, expectedPerm));

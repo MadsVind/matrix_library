@@ -1,6 +1,6 @@
 #include <matrixTest.hpp>
 
-TEST_CASE("Does isSquare() return the expected boolean value", "[isSquare]") {
+TEST_CASE("Does isSquare() return the expected boolean value", "[unit_test]") {
     for (int i = 1; i < sampleSize; ++i) {
         int j = sampleSize - i;
         Matrix<double> probNonSquare = Matrix<double>(i, j, 0);
@@ -13,7 +13,7 @@ TEST_CASE("Does isSquare() return the expected boolean value", "[isSquare]") {
     }
 }
 
-TEST_CASE("does isSameSize() return the expected boolean value", "[isSameSize]") {
+TEST_CASE("does isSameSize() return the expected boolean value", "[unit_test]") {
     for (int i = 1; i < sampleSize; ++i) {
         int j = sampleSize - i;
         Matrix<double> ij = Matrix<double>(i, j, 0);

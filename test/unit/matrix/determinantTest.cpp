@@ -1,6 +1,6 @@
 #include <matrixTest.hpp>
 
-TEST_CASE("Matrix determinant method", "[determinant]") {
+TEST_CASE("Matrix determinant method", "[unit_test]") {
     Matrix<double> matrix1;
     Matrix<double> matrix2;
     Matrix<double> matrix3;

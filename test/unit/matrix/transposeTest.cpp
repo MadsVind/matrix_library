@@ -1,6 +1,6 @@
 #include <matrixTest.hpp>
 
-TEST_CASE("Does matrix transpose return expected matrix", "[transpose]") {
+TEST_CASE("Does matrix transpose return expected matrix", "[unit_test]") {
     Matrix<double> matrix1;
     Matrix<double> matrix2;
     Matrix<double> matrix3;

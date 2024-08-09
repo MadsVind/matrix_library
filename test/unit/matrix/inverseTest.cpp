@@ -1,6 +1,6 @@
 #include <matrixTest.hpp>
 
-TEST_CASE("Matrix inverse method", "[inverse]") {
+TEST_CASE("Matrix inverse method", "[unit_test]") {
     Matrix<double> matrix1;
     Matrix<double> matrix2;
     Matrix<double> matrix3;

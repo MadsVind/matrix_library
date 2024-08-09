@@ -1,7 +1,7 @@
 #include <matrixTest.hpp>
 
 
-TEST_CASE("Matrix ref method", "[ref]") {
+TEST_CASE("Matrix ref method", "[unit_test]") {
     Matrix<double> matrix1;
     Matrix<double> matrix2;
     Matrix<double> matrix3;

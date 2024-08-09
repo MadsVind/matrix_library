@@ -1,6 +1,6 @@
 #include <matrixTest.hpp>
 
-TEST_CASE("Does matrix operator== return expected boolean value", "[operator==]") {
+TEST_CASE("Does matrix operator== return expected boolean value", "[unit_test]") {
     Matrix<double> matrix1;
     Matrix<double> matrix2;
     Matrix<double> matrix3;

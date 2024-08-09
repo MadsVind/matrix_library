@@ -1,11 +1,10 @@
 #include <matrixTest.hpp>
 
-TEST_CASE("Does getIdentity() create identity matrix of apropiate size", "[getIdentity]") {
+TEST_CASE("Does getIdentity() create identity matrix of apropiate size", "[unit_test]") {
     const size_t matrixTestSize = 9;
 
     for (int i = 1; i < sampleSize; ++i) {
         Matrix<double> I = Matrix<double>::getIdentity(i);
-        std::cout << "i: " << i << "\n"; 
         REQUIRE(I.getColAmount() == i);
         REQUIRE(I.getRowAmount() == i);
     }

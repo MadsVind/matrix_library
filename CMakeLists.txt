@@ -8,6 +8,9 @@ project(cnn VERSION 1.0.0)
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+# Set the output directory for executables
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
+
 # Enable testing
 enable_testing()
 
@@ -28,7 +31,7 @@ file(GLOB_RECURSE SOURCES "src/*.cpp" "src/**/*.cpp" "include/**/*.cpp")
 add_library(cnn_lib ${SOURCES})
 
 # Link the required libraries to the library
-target_link_libraries(cnn_lib PUBLIC )
+target_link_libraries(cnn_lib PUBLIC)
 
 # Add an executable that is built from main.cpp
 add_executable(cnn main.cpp)
@@ -36,5 +39,6 @@ add_executable(cnn main.cpp)
 # Link the library to the executable
 target_link_libraries(cnn PRIVATE cnn_lib)
 
-# Add the test subdirectory
 add_subdirectory(test)
+
+add_subdirectory(benchmark)

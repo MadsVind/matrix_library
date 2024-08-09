@@ -1,6 +1,6 @@
 #include <matrixTest.hpp>
 
-TEST_CASE("Matrix row operations", "[row operations]") {
+TEST_CASE("Matrix row operations", "[unit_test]") {
     Matrix<double> matrix1;
     Matrix<double> matrix2;
 

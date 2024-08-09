@@ -4,7 +4,7 @@
 // https://www.emathhelp.net/en/calculators/linear-algebra/qr-factorization-calculator/?i=%5B%5B1%2C2%2C3%2C4%5D%2C%5B5%2C6%2C7%2C8%5D%2C%5B9%2C10%2C11%2C12%5D%5D
 
 // what happens empty matrix, or is there matrices for which the decomp is not possible?
-TEST_CASE("Matrix qr decomposition method", "[qr]") {
+TEST_CASE("Matrix qr decomposition method", "[unit_test]") {
     Matrix<double> matrix1;
     Matrix<double> matrix2;
     Matrix<double> matrix3;
@@ -39,10 +39,6 @@ TEST_CASE("Matrix qr decomposition method", "[qr]") {
 
     SECTION("Normal case with rectangular matrix") {
         Matrix<double>::Qr qu = matrix2.qr();
-
-        qu.orthogonal.print();
-        std::cout << "\n";
-        qu.upper.print();
 
         // Q
         REQUIRE(checkVecApprox(qu.orthogonal.getRow(0), {0.707107, 0.408248, -0.57735}));

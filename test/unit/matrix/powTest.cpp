@@ -1,6 +1,6 @@
 #include <matrixTest.hpp>
 
-TEST_CASE("Matrix power function works correctly", "[pow]") {
+TEST_CASE("Matrix power function works correctly", "[unit_test]") {
     Matrix<double> matrix;
     Matrix<double> expectedMatrix;
 

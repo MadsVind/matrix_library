@@ -1,6 +1,6 @@
 #include <matrixTest.hpp>
 
-TEST_CASE("Does unary matrix operator- return expected matrix", "[unary operator-]") {
+TEST_CASE("Does unary matrix operator- return expected matrix", "[unit_test]") {
     Matrix<double> matrix1;
     Matrix<double> matrix2;
     Matrix<double> zeroMatrix;
