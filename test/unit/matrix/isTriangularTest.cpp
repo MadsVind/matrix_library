@@ -35,7 +35,7 @@ TEST_CASE("Does isUpperTriangular() return expected values to corresponding matr
     }
 }
 
-TEST_CASE("Does isLowerTriangular() return expected values to corresponding matrices", "[isUpperTriangular]") {
+TEST_CASE("Does isLowerTriangular() return expected values to corresponding matrices", "[unit_test]") {
     Matrix<double> upperTriangular;
     Matrix<double> lowerTriangular;
     Matrix<double> sparseLowerMatrix;

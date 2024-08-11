@@ -40,17 +40,16 @@ TEST_CASE("Matrix eigen method", "[unit_test]") {
     }
 
 
-// !!! can't do before qr can do linear dependency
-//    SECTION("Symmetric matrix") {
-//        
-//        Matrix<double>::Eigen eigen = matrix3.calcEigen(1e-9);
-//
-//        // Expected eigenvalues for the given matrix
-//        std::vector<double> expectedEigenValues = {2.26795, 4, 5.73205};
-//
-//        // Compare eigenvalues
-//        REQUIRE(checkVecApprox(eigen.valueVec, expectedEigenValues));
-//    }
+    SECTION("Symmetric matrix") {
+        
+        Matrix<double>::Eigen eigen = matrix3.eigen(1e-9);
+
+        // Expected eigenvalues for the given matrix
+        std::vector<double> expectedEigenValues = {5.41421, 4, 2.58579};
+
+        // Compare eigenvalues
+        REQUIRE(checkVecApprox(eigen.valueVec, expectedEigenValues));
+    }
 
     SECTION("Non-square matrix") {
         Matrix<double> nonSquareMatrix;

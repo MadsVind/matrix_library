@@ -69,11 +69,20 @@ else
     echo "Error: ./bin/cnn not found."
 fi
 
+# Ensure the logs directory exists
+mkdir -p ../../logs
+echo "Logs directory ensured."
+
 # Run benchmarks if -b flag is used
 if [ "$PRINT_BENCHMARKS" == true ]; then
     if [ -f ./bin/cnn_benchmark ]; then
-        echo "Running benchmarks..."
-        ./bin/cnn_benchmark
+        echo "Running benchmarks directing to ../../logs/benchmark_log.txt ..."
+        ./bin/cnn_benchmark --benchmark-samples 100 --out ../../logs/benchmark_log.txt
+        if [ -f ../../logs/benchmark_log.txt ]; then
+            echo "Benchmark log created successfully at ../../logs/benchmark_log.txt"
+        else
+            echo "Error: Benchmark log not created."
+        fi
     else
         echo "Error: ./bin/cnn_benchmark not found."
     fi
