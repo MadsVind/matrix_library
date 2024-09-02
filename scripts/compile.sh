@@ -3,22 +3,32 @@
 # Default build type to Release
 BUILD_TYPE=Release
 PRINT_BENCHMARKS=false
+BENCHMARK_METHOD=""
 
 # Parse command line arguments
-while getopts "db" opt; do
+while getopts "db::" opt; do
   case $opt in
     d)
       BUILD_TYPE=Debug
       ;;
     b)
       PRINT_BENCHMARKS=true
+      BENCHMARK_METHOD=$OPTARG
       ;;
     *)
-      echo "Usage: $0 [-d] [-b]"
+      echo "Usage: $0 [-d] [-b [method]]"
       exit 1
       ;;
   esac
 done
+
+# If no arguments are provided, set PRINT_BENCHMARKS to true
+if [ $OPTIND -eq 1 ]; then
+  PRINT_BENCHMARKS=true
+fi
+
+# Debug output to check if BENCHMARK_METHOD is set
+echo "BENCHMARK_METHOD: '$BENCHMARK_METHOD'"
 
 # Set build directory based on build type
 if [ "$BUILD_TYPE" == "Debug" ]; then
@@ -34,7 +44,6 @@ cd $BUILD_DIR
 # Run CMake to generate the Makefile with the specified build type
 # Point CMake to the root directory where CMakeLists.txt is located
 cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE ../..
-
 
 # Run make to build the project
 make
@@ -73,11 +82,16 @@ fi
 mkdir -p ../../logs
 echo "Logs directory ensured."
 
-# Run benchmarks if -b flag is used
+# Run benchmarks if -b flag is used or no arguments are provided
 if [ "$PRINT_BENCHMARKS" == true ]; then
     if [ -f ./bin/cnn_benchmark ]; then
-        echo "Running benchmarks directing to ../../logs/benchmark_log.txt ..."
-        ./bin/cnn_benchmark --benchmark-samples 100 --out ../../logs/benchmark_log.txt
+        if [ -n "$BENCHMARK_METHOD" ]; then
+            echo "Running benchmarks for method $BENCHMARK_METHOD directing to ../../logs/"${BENCHMARK_METHOD}"_benchmark_log.txt ..."
+            ./bin/cnn_benchmark "[${BENCHMARK_METHOD}]" --benchmark-samples 100 --out ../../logs/"${BENCHMARK_METHOD}"_benchmark_log.txt
+        else
+            echo "Running benchmarks directing to ../../logs/benchmark_log.txt ..."
+            ./bin/cnn_benchmark --benchmark-samples 100 --out ../../logs/benchmark_log.txt
+        fi
         if [ -f ../../logs/benchmark_log.txt ]; then
             echo "Benchmark log created successfully at ../../logs/benchmark_log.txt"
         else

@@ -470,6 +470,29 @@ Matrix<T> Matrix<T>::inverse() const {
     return iden;
 }
 
+//template <typename T>
+//Matrix<T> Matrix<T>::operator*(const Matrix<T>& B) const {
+//    if (getColAmount() != B.getRowAmount()) throw std::invalid_argument("Matrix dimensions do not allow multiplication");
+//
+//    size_t rowAmount = getRowAmount();
+//    size_t colAmount = B.getColAmount();
+//
+//    Matrix<T> product(rowAmount, colAmount, T()); 
+//    for (int row = 0; row < rowAmount; ++row) {
+//        for (int col = 0; col < colAmount; ++col) {
+//            T sum = T(); 
+//            for (int k = 0; k < colAmount; ++k) { 
+//                sum += data[row][k] * B[k][col];
+//            }
+//            product[row][col] = sum;
+//        }
+//    }
+//    return product;
+//}
+
+
+std::mutex mtx; //doing mutex on result
+
 template <typename T>
 Matrix<T> Matrix<T>::operator*(const Matrix<T>& B) const {
     if (getColAmount() != B.getRowAmount()) throw std::invalid_argument("Matrix dimensions do not allow multiplication");
@@ -478,17 +501,30 @@ Matrix<T> Matrix<T>::operator*(const Matrix<T>& B) const {
     size_t colAmount = B.getColAmount();
 
     Matrix<T> product(rowAmount, colAmount, T()); 
+
+    auto calcElm = [&](int row, int col) {
+        T sum = T(); 
+        for (int k = 0; k < colAmount; ++k) { 
+            sum += data[row][k] * B[k][col];
+        }
+        std::lock_guard<std::mutex> lock(mtx);
+        product[row][col] = sum;
+    };
+
+    std::vector<std::thread> threads;
     for (int row = 0; row < rowAmount; ++row) {
         for (int col = 0; col < colAmount; ++col) {
-            T sum = T(); 
-            for (int k = 0; k < colAmount; ++k) { 
-                sum += data[row][k] * B[k][col];
-            }
-            product[row][col] = sum;
+            threads.emplace_back(calcElm, row, col);
         }
     }
+
+    for (auto& thread : threads) {
+        thread.join();
+    }
+
     return product;
 }
+
 
 template <typename T>
 std::vector<T> Matrix<T>::operator*(const std::vector<T>& vec) const {
@@ -523,21 +559,21 @@ Matrix<T> Matrix<T>::operator*(const T& scalar) const  {
     return product;
 }
 
-// !!! doesn't work
-template <typename T>
-std::vector<T> operator*(const std::vector<T>& vec, const Matrix<T>& B)  {
-    Matrix<T> A;
-    A.addRow(vec);
-    Matrix<T> productMatrix = (A * B);
-    std::vector<T> product = productMatrix.getCol(0);
-    return product;
-}
-
-// !!! doesn't work
-template <typename T>
-Matrix<T> operator*(const T& scalar, const Matrix<T>& B)  {
-    return B * scalar;
-}
+//// !!! doesn't work
+//template <typename T>
+//std::vector<T> operator*(const std::vector<T>& vec, const Matrix<T>& B)  {
+//    Matrix<T> A;
+//    A.addRow(vec);
+//    Matrix<T> productMatrix = (A * B);
+//    std::vector<T> product = productMatrix.getCol(0);
+//    return product;
+//}
+//
+//// !!! doesn't work
+//template <typename T>
+//Matrix<T> operator*(const T& scalar, const Matrix<T>& B)  {
+//    return B * scalar;
+//}
 
 template <typename T>
 Matrix<T> Matrix<T>::pow(const T& exponent) const {  

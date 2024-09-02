@@ -6,6 +6,8 @@
 #include <string>
 #include <tuple>
 #include <cmath>
+#include <thread>
+#include <mutex>
 
 template <typename T>
 class Matrix {
