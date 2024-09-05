@@ -1,16 +1,11 @@
 #include <matrixTest.hpp>
 
 TEST_CASE("Matrix multiplication operator* works correctly", "[unit_test]") {
-    Matrix<double> matrix1;
+    Matrix<double> matrix1 = createIncrementingSquareMatrix<double>(3);
     Matrix<double> matrix2;
     Matrix<double> expectedMatrix;
     std::vector<double> vec1;
     std::vector<double> expectedVec;
-
-    // Initialize matrix1 (3x3)
-    matrix1.addRow({1, 2, 3})
-           .addRow({4, 5, 6})
-           .addRow({7, 8, 9});
 
     // Initialize matrix2 (3x3)
     matrix2.addRow({9, 8, 7})

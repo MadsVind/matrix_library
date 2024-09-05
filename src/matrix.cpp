@@ -490,9 +490,6 @@ Matrix<T> Matrix<T>::inverse() const {
 //    return product;
 //}
 
-
-std::mutex mtx; //doing mutex on result
-
 template <typename T>
 Matrix<T> Matrix<T>::operator*(const Matrix<T>& B) const {
     if (getColAmount() != B.getRowAmount()) throw std::invalid_argument("Matrix dimensions do not allow multiplication");
@@ -507,14 +504,13 @@ Matrix<T> Matrix<T>::operator*(const Matrix<T>& B) const {
         for (int k = 0; k < colAmount; ++k) { 
             sum += data[row][k] * B[k][col];
         }
-        std::lock_guard<std::mutex> lock(mtx);
         product[row][col] = sum;
     };
 
     std::vector<std::thread> threads;
     for (int row = 0; row < rowAmount; ++row) {
         for (int col = 0; col < colAmount; ++col) {
-            threads.emplace_back(calcElm, row, col);
+            threads.emplace_back(calcElm, row, col); 
         }
     }
 

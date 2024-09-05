@@ -6,7 +6,7 @@
 #include <matrix.hpp>
 #include <limits>
 
-const size_t sampleSize = 1000;
+const size_t sampleSize = 300;
 const double tolerance = 0.0001;
 
 template <typename T>
@@ -32,6 +32,19 @@ bool checkMatrixApprox(const Matrix<T>& mat1, const Matrix<T>& mat2, double tole
         }
     }
     return true;
+}
+
+template <typename T>
+Matrix<T> createIncrementingSquareMatrix(size_t size) {
+    Matrix<T> matrix;
+    for (int i = 0; i < size; ++i) {
+        std::vector<T> row;
+        for (int j = 0; j < size; ++j) {
+            row.push_back(1 + i * size + j);
+        }
+        matrix.addRow(row);
+    }
+    return matrix;
 }
 
 

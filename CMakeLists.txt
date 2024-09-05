@@ -39,6 +39,9 @@ add_executable(cnn main.cpp)
 # Link the library to the executable
 target_link_libraries(cnn PRIVATE cnn_lib)
 
+# Set optimization flags globally 
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -O3 ") ## one of these makes test fail -march=native -flto
+
 add_subdirectory(test)
 
 add_subdirectory(benchmark)
