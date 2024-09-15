@@ -490,6 +490,37 @@ Matrix<T> Matrix<T>::inverse() const {
 //    return product;
 //}
 
+//template <typename T>
+//Matrix<T> Matrix<T>::operator*(const Matrix<T>& B) const {
+//    if (getColAmount() != B.getRowAmount()) throw std::invalid_argument("Matrix dimensions do not allow multiplication");
+//
+//    size_t rowAmount = getRowAmount();
+//    size_t colAmount = B.getColAmount();
+//
+//    Matrix<T> product(rowAmount, colAmount, T()); 
+//
+//    auto calcElm = [&](int row, int col) {
+//        T sum = T(); 
+//        for (int k = 0; k < colAmount; ++k) { 
+//            sum += data[row][k] * B[k][col];
+//        }
+//        product[row][col] = sum;
+//    };
+//
+//    std::vector<std::thread> threads;
+//    for (int row = 0; row < rowAmount; ++row) {
+//        for (int col = 0; col < colAmount; ++col) {
+//            threads.emplace_back(calcElm, row, col); 
+//        }
+//    }
+//
+//    for (auto& thread : threads) {
+//        thread.join();
+//    }
+//
+//    return product;
+//}
+
 template <typename T>
 Matrix<T> Matrix<T>::operator*(const Matrix<T>& B) const {
     if (getColAmount() != B.getRowAmount()) throw std::invalid_argument("Matrix dimensions do not allow multiplication");
@@ -499,19 +530,19 @@ Matrix<T> Matrix<T>::operator*(const Matrix<T>& B) const {
 
     Matrix<T> product(rowAmount, colAmount, T()); 
 
-    auto calcElm = [&](int row, int col) {
-        T sum = T(); 
-        for (int k = 0; k < colAmount; ++k) { 
-            sum += data[row][k] * B[k][col];
+    auto calcElm = [&](int row) {
+        for (int col = 0; col < colAmount; ++col) {
+            T sum = T(); 
+            for (int k = 0; k < colAmount; ++k) { 
+                sum += data[row][k] * B[k][col];
+            }
+            product[row][col] = sum;
         }
-        product[row][col] = sum;
     };
 
     std::vector<std::thread> threads;
     for (int row = 0; row < rowAmount; ++row) {
-        for (int col = 0; col < colAmount; ++col) {
-            threads.emplace_back(calcElm, row, col); 
-        }
+        threads.emplace_back(calcElm, row); 
     }
 
     for (auto& thread : threads) {
