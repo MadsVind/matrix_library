@@ -33,6 +33,12 @@ add_library(cnn_lib ${SOURCES})
 # Link the required libraries to the library
 target_link_libraries(cnn_lib PUBLIC)
 
+# Check if Emscripten is being used
+if(EMSCRIPTEN)
+    set(CMAKE_EXECUTABLE_SUFFIX ".js")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s WASM=1 -s MODULARIZE=1 -s EXPORT_NAME=createModule")
+endif()
+
 # Add an executable that is built from main.cpp
 add_executable(cnn main.cpp)
 
