@@ -13,9 +13,9 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v2
 
-    - name: Set up CMake
-      uses: actions/setup-cmake@v1
-
+    - name: Install CMake
+      run: sudo apt-get install -y cmake
+      
     - name: Run compile script
       run: |
         chmod +x scripts/compile.sh
