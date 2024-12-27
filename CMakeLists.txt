@@ -40,5 +40,3 @@ add_executable(cnn main.cpp)
 target_link_libraries(cnn PRIVATE cnn_lib)
 
 add_subdirectory(test)
-
-add_subdirectory(benchmark)
