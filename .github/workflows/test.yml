@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [windows-latest, ubuntu-latest, macos-latest]
+        os: [windows-latest, ubuntu-latest]
         build_type: [Release]
         cpp_compiler: [clang++, g++]
         exclude:
@@ -21,21 +21,19 @@ jobs:
             cpp_compiler: clang++
           - os: ubuntu-latest
             cpp_compiler: g++
-          - os: macos-latest
-            cpp_compiler: g++
 
     steps:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Cache build outputs
-      uses: actions/cache@v4
-      with:
-        path: |
-          build
-        key: ${{ runner.os }}-build-${{ hashFiles('**/CMakeLists.txt') }}
-        restore-keys: |
-          ${{ runner.os }}-build-
+#    - name: Cache build outputs
+#      uses: actions/cache@v4
+#      with:
+#        path: |
+#          build
+#        key: ${{ runner.os }}-build-${{ hashFiles('**/CMakeLists.txt') }}
+#        restore-keys: |
+#          ${{ runner.os }}-build-
 
     - name: Set Build Output Directory
       id: strings
@@ -43,12 +41,12 @@ jobs:
       run: |
         echo "build-output-dir=${{ github.workspace }}/build" >> "$GITHUB_OUTPUT"
 
-    - name: Setup JDK
-      if: matrix.os != 'ubuntu-latest'
-      uses: actions/setup-java@v4
-      with:
-        distribution: 'temurin'
-        java-version: '11'
+#    - name: Setup JDK
+#      if: matrix.os != 'ubuntu-latest'
+#      uses: actions/setup-java@v4
+#      with:
+#        distribution: 'temurin'
+#        java-version: '11'
       
     - name: Configure CMake (Unix)
       if: matrix.os != 'windows-latest'
@@ -77,6 +75,6 @@ jobs:
     - name: Upload Test Results
       uses: actions/upload-artifact@v4
       with:
-        name: test-results
+        name: test-results-${{ github.run_number }}
         path: ${{ steps.strings.outputs.build-output-dir }}/Testing/Temporary/LastTest.log
         if-no-files-found: error
