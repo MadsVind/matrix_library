@@ -3,9 +3,10 @@
 # Default build type to Release
 BUILD_TYPE=Release
 PRINT_BENCHMARKS=false
+USE_EMSCRIPTEN=false
 
 # Parse command line arguments
-while getopts "db" opt; do
+while getopts "dbe" opt; do
   case $opt in
     d)
       BUILD_TYPE=Debug
@@ -13,8 +14,11 @@ while getopts "db" opt; do
     b)
       PRINT_BENCHMARKS=true
       ;;
+    e)
+      USE_EMSCRIPTEN=true
+      ;;
     *)
-      echo "Usage: $0 [-d] [-b]"
+      echo "Usage: $0 [-d] [-b] [-e]"
       exit 1
       ;;
   esac
@@ -33,8 +37,12 @@ cd $BUILD_DIR
 
 # Run CMake to generate the Makefile with the specified build type
 # Point CMake to the root directory where CMakeLists.txt is located
-cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE ../..
-
+if [ "$USE_EMSCRIPTEN" == true ]; then
+    source ../../emsdk/emsdk_env.sh
+    emcmake cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE ../..
+else
+    cmake -DCMAKE_BUILD_TYPE=$BUILD_TYPE ../..
+fi
 
 # Run make to build the project
 make
