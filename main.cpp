@@ -1,68 +1,95 @@
-#include "main.hpp"
+#include <iostream>
+#include <vector>
+#include <string>
+#include <sstream>
+#include "matrix.hpp"
 
-typedef std::vector<std::vector<std::vector<float>>> Weights;
-
-std::vector<float> createRandomVector(int size) {
-    std::vector<float> randomVector;
-    for (int i = 0; i < size; i++) {
-        randomVector.push_back(rand() % 100 / 100.0f);
-    }
-    return randomVector;
-}
-
-Weights createWeights(std::vector<int> layers) {
-    Weights weights;
-    for (int i = 0; i < layers.size() - 1; i++) {
-        std::vector<std::vector<float>> layerWeights;
-        for (int j = 0; j < layers[i]; j++) {
-            layerWeights.push_back(createRandomVector(layers[i + 1]));
+template <typename T>
+Matrix<T> parseMatrix(const std::string& str) {
+    std::istringstream iss(str);
+    std::vector<std::vector<T>> data;
+    std::string line;
+    while (std::getline(iss, line, ';')) {
+        std::istringstream lineStream(line);
+        std::vector<T> row;
+        T value;
+        while (lineStream >> value) {
+            row.push_back(value);
         }
-        weights.push_back(layerWeights);
+        data.push_back(row);
     }
-    return weights;
+    int rows = data.size();
+    int cols = data[0].size();
+    Matrix<T> matrix(rows, cols);
+    for (int i = 0; i < rows; ++i) {
+        for (int j = 0; j < cols; ++j) {
+            matrix.assignElement(i, j, data[i][j]);
+        }
+    }
+    return matrix;
 }
 
-std::vector<float> createBias(std::vector<int> layers) {
-    std::vector<float> bias;
-    for (int i = 1; i < layers.size(); i++) {
-        bias.push_back(rand() % 100 / 100.0f);
+int main(int argc, char* argv[]) {
+    if (argc < 3) {
+        std::cerr << "Usage: " << argv[0] << " <method> <matrix1> [<matrix2>]" << std::endl;
+        return 1;
     }
-    return bias;
-}
 
-void printWeights(Weights weights) {
-    for (int i = 0; i < weights.size(); i++) {
-        for (int j = 0; j < weights[i].size(); j++) {
-            for (int k = 0; k < weights[i][j].size(); k++) {
-                std::cout << weights[i][j][k] << " ";
-            }
-            std::cout << std::endl;
+    std::string method = argv[1];
+    Matrix<double> matrix1 = parseMatrix<double>(argv[2]);
+    Matrix<double> matrix2;
+    if (argc == 4) {
+        matrix2 = parseMatrix<double>(argv[3]);
+    }
+
+    if (method == "add" && argc == 4) {
+        Matrix<double> result = matrix1 + matrix2;
+        result.print();
+    } else if (method == "subtract" && argc == 4) {
+        Matrix<double> result = matrix1 - matrix2;
+        result.print();
+    } else if (method == "multiply" && argc == 4) {
+        Matrix<double> result = matrix1 * matrix2;
+        result.print();
+    } else if (method == "determinant") {
+        double result = matrix1.determinant();
+        std::cout << "Determinant: " << result << std::endl;
+    } else if (method == "inverse") {
+        Matrix<double> result = matrix1.inverse();
+        result.print();
+    } else if (method == "transpose") {
+        Matrix<double> result = matrix1.transpose();
+        result.print();
+    } else if (method == "ref") {
+        Matrix<double> result = matrix1.ref();
+        result.print();
+    } else if (method == "rref") {
+        Matrix<double> result = matrix1.rref();
+        result.print();
+    } else if (method == "eigen") {
+        Matrix<double>::Eigen result = matrix1.eigen();
+        result.vectorVec.print();
+        std::cout << "\n";
+        for (const auto& val : result.valueVec) {
+            std::cout << val << " ";
         }
         std::cout << std::endl;
+    } else if (method == "qr") {
+        Matrix<double>::Qr result = matrix1.qr();
+        result.orthogonal.print();
+        std::cout << "\n";
+        result.upper.print();
+    } else if (method == "plu") {
+        Matrix<double>::Plu result = matrix1.plu();
+        result.permutation.print();
+        std::cout << "\n";
+        result.lower.print();
+        std::cout << "\n";
+        result.upper.print();
+    } else {
+        std::cerr << "Unknown method or incorrect number of arguments" << std::endl;
+        return 1;
     }
-}
 
-
-std::vector<float> sigmoid(std::vector<float> input) {
-    std::vector<float> output;
-    for (int i = 0; i < input.size(); i++) {
-        output.push_back(1 / (1 + exp(-input[i])));
-    }
-    return output;
-}
-
-//std::vector<float> feedForward(std::vector<float> input, Weights weights, std::vector<float> bias) {
-//    if (input.size() != weights[0].size()) {
-//        std::cout << "Input size does not match input layer size" << std::endl;
-//        return {};
-//    }
-//    std::vector<float> output;
-//    for (int i = 0; i < weights.size(); i++) {
-//        
-//    }
-//}
-
-
-int main() {
     return 0;
 }
