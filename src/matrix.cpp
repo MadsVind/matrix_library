@@ -470,71 +470,49 @@ Matrix<T> Matrix<T>::inverse() const {
     return iden;
 }
 
-//template <typename T>
-//Matrix<T> Matrix<T>::operator*(const Matrix<T>& B) const {
-//    if (getColAmount() != B.getRowAmount()) throw std::invalid_argument("Matrix dimensions do not allow multiplication");
-//
-//    size_t rowAmount = getRowAmount();
-//    size_t colAmount = B.getColAmount();
-//
-//    Matrix<T> product(rowAmount, colAmount, T()); 
-//    for (int row = 0; row < rowAmount; ++row) {
-//        for (int col = 0; col < colAmount; ++col) {
-//            T sum = T(); 
-//            for (int k = 0; k < colAmount; ++k) { 
-//                sum += data[row][k] * B[k][col];
-//            }
-//            product[row][col] = sum;
-//        }
-//    }
-//    return product;
-//}
+template <typename T>
+Matrix<T> Matrix<T>::matrixDotNoThread(const Matrix<T>& A, const Matrix<T>& B) const {
+    size_t rowAmount = A.getRowAmount();
+    size_t colAmount = B.getColAmount();
 
-//template <typename T>
-//Matrix<T> Matrix<T>::operator*(const Matrix<T>& B) const {
-//    if (getColAmount() != B.getRowAmount()) throw std::invalid_argument("Matrix dimensions do not allow multiplication");
-//
-//    size_t rowAmount = getRowAmount();
-//    size_t colAmount = B.getColAmount();
-//
-//    Matrix<T> product(rowAmount, colAmount, T()); 
-//
-//    auto calcElm = [&](int row, int col) {
-//        T sum = T(); 
-//        for (int k = 0; k < colAmount; ++k) { 
-//            sum += data[row][k] * B[k][col];
-//        }
-//        product[row][col] = sum;
-//    };
-//
-//    std::vector<std::thread> threads;
-//    for (int row = 0; row < rowAmount; ++row) {
-//        for (int col = 0; col < colAmount; ++col) {
-//            threads.emplace_back(calcElm, row, col); 
-//        }
-//    }
-//
-//    for (auto& thread : threads) {
-//        thread.join();
-//    }
-//
-//    return product;
-//}
+    Matrix<T> product(rowAmount, colAmount, T()); 
+    for (int row = 0; row < rowAmount; ++row) {
+        for (int col = 0; col < colAmount; ++col) {
+            T sum = T(); 
+            for (int k = 0; k < colAmount; ++k) { 
+                sum += A[row][k] * B[k][col];
+            }
+            product[row][col] = sum;
+        }
+    }
+    return product;
+}
+
+// make version which makes new threads when they are more effecient
 
 template <typename T>
-Matrix<T> Matrix<T>::operator*(const Matrix<T>& B) const {
-    if (getColAmount() != B.getRowAmount()) throw std::invalid_argument("Matrix dimensions do not allow multiplication");
-
-    size_t rowAmount = getRowAmount();
+Matrix<T> Matrix<T>::matrixDotWithThread(const Matrix<T>& A, const Matrix<T>& B) const {
+    size_t rowAmount = A.getRowAmount();
     size_t colAmount = B.getColAmount();
 
     Matrix<T> product(rowAmount, colAmount, T()); 
 
-    auto calcElm = [&](int row) {
-        for (int col = 0; col < colAmount; ++col) {
+//    auto calcElm = [&](int row) {
+//        for (int col = 0; col < colAmount; ++col) {
+//            T sum = T(); 
+//            for (int k = 0; k < colAmount; ++k) { 
+//                sum += A[row][k] * B[k][col];
+//            }
+//            product[row][col] = sum;
+//        }
+//    };
+
+    auto calcElm = [&](int row, int colStart, int colInterval) {
+        const size_t endCol = colStart + colInterval;
+        for (int col = colStart; colStart < endCol; ++col) {
             T sum = T(); 
-            for (int k = 0; k < colAmount; ++k) { 
-                sum += data[row][k] * B[k][col];
+            for (int k = 0; k < colAmount; ++k) { // this should be changed
+                sum += A[row][k] * B[k][col];
             }
             product[row][col] = sum;
         }
@@ -542,7 +520,9 @@ Matrix<T> Matrix<T>::operator*(const Matrix<T>& B) const {
 
     std::vector<std::thread> threads;
     for (int row = 0; row < rowAmount; ++row) {
-        threads.emplace_back(calcElm, row); 
+        for (int col = 0; col < colAmount; col += elementsPrThread) {
+            threads.emplace_back(calcElm, row, col, elementsPrThread); 
+        }
     }
 
     for (auto& thread : threads) {
@@ -550,6 +530,13 @@ Matrix<T> Matrix<T>::operator*(const Matrix<T>& B) const {
     }
 
     return product;
+}
+
+template <typename T>
+Matrix<T> Matrix<T>::operator*(const Matrix<T>& B) const {
+    if (getColAmount() != B.getRowAmount()) throw std::invalid_argument("Matrix dmensions do not allow multiplication");
+    
+    return (B.getColAmount() < elementsPrThread) ? matrixDotWithThread(*this, B) : matrixDotNoThread(*this, B);
 }
 
 

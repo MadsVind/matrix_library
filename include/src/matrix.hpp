@@ -17,6 +17,10 @@ private:
     std::vector<std::vector<T>> data;
     int rowAmount;
     int colAmount;
+    size_t elementsPrThread = 140; // Magick number for using threads being more effecient, can't be const cuz removes =operator
+
+    Matrix<T> matrixDotWithThread(const Matrix<T>& A, const Matrix<T>& B) const;
+    Matrix<T> matrixDotNoThread(const Matrix<T>& A, const Matrix<T>& B) const;
     
 public:
     Matrix() : rowAmount(0), colAmount(0) {}
