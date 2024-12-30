@@ -1,6 +1,8 @@
 # Set the minimum required version of CMake
 cmake_minimum_required(VERSION 3.10)
 
+#set(CMAKE_TOOLCHAIN_FILE "$ENV{EMSDK}/upstream/emscripten/cmake/Modules/Platform/Emscripten.cmake")
+
 # Set the project name and version
 project(cnn VERSION 1.0.0)
 
@@ -33,12 +35,6 @@ add_library(cnn_lib ${SOURCES})
 # Link the required libraries to the library
 target_link_libraries(cnn_lib PUBLIC)
 
-# Check if Emscripten is being used
-if(EMSCRIPTEN)
-    set(CMAKE_EXECUTABLE_SUFFIX ".js")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -s WASM=1 -s MODULARIZE=1 -s EXPORT_NAME=createModule")
-endif()
-
 # Add an executable that is built from main.cpp
 add_executable(cnn main.cpp)
 
@@ -46,3 +42,10 @@ add_executable(cnn main.cpp)
 target_link_libraries(cnn PRIVATE cnn_lib)
 
 add_subdirectory(test)
+
+if(EMSCRIPTEN)
+    # Test doesn't work
+    set_target_properties(cnn PROPERTIES
+        LINK_FLAGS "--bind -s WASM=1 -s EXPORTED_FUNCTIONS='[\"_main\", \"_malloc\", \"_free\", \"stringToUTF8\"]' -s EXTRA_EXPORTED_RUNTIME_METHODS='[\"cwrap\", \"FS\", \"allocate\", \"ALLOC_NORMAL\", \"stringToUTF8\"]'"
+    )
+endif()
