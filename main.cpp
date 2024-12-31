@@ -48,8 +48,11 @@ int main(int argc, char* argv[]) {
     } else if (method == "subtract" && argc == 4) {
         Matrix<double> result = matrix1 - matrix2;
         result.print();
-    } else if (method == "multiply" && argc == 4) {
+    } else if (method == "dot" && argc == 4) {
         Matrix<double> result = matrix1 * matrix2;
+        result.print();
+    } else if (method == "pow" && argc == 4) {
+        Matrix<double> result = matrix1.pow(matrix2[0][0]);
         result.print();
     } else if (method == "determinant") {
         double result = matrix1.determinant();
