@@ -3,6 +3,7 @@
 TEST_CASE("Matrix multiplication operator* works correctly", "[unit_test]") {
     Matrix<double> matrix1;
     Matrix<double> matrix2;
+    Matrix<double> vectorMatrix;
     Matrix<double> expectedMatrix;
     std::vector<double> vec1;
     std::vector<double> expectedVec;
@@ -17,6 +18,8 @@ TEST_CASE("Matrix multiplication operator* works correctly", "[unit_test]") {
            .addRow({6, 5, 4})
            .addRow({3, 2, 1});
 
+    vectorMatrix.addRow({1, 2, 3});
+
     // Expected result of matrix1 * matrix2
     expectedMatrix.addRow({30, 24, 18})
                   .addRow({84, 69, 54})
@@ -25,6 +28,14 @@ TEST_CASE("Matrix multiplication operator* works correctly", "[unit_test]") {
     SECTION("Standard case") {
         // Test matrix multiplication
         REQUIRE((matrix1 * matrix2) == expectedMatrix);
+    }
+
+
+    SECTION("Standard vector vector case") {
+        // Test vector x vector matrix multiplication
+        Matrix<double> expectedVectorMatrix;
+        expectedVectorMatrix.addRow({14});
+        REQUIRE((vectorMatrix * vectorMatrix.transpose()) == expectedVectorMatrix);
     }
     
     SECTION("Standard matrix vector case") {

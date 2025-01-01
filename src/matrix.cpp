@@ -476,12 +476,13 @@ Matrix<T> Matrix<T>::operator*(const Matrix<T>& B) const {
 
     size_t rowAmount = getRowAmount();
     size_t colAmount = B.getColAmount();
+    size_t midAmount = getColAmount();
 
     Matrix<T> product(rowAmount, colAmount, T()); 
     for (int row = 0; row < rowAmount; ++row) {
         for (int col = 0; col < colAmount; ++col) {
             T sum = T(); 
-            for (int k = 0; k < colAmount; ++k) { 
+            for (int k = 0; k < midAmount; ++k) { 
                 sum += data[row][k] * B[k][col];
             }
             product[row][col] = sum;
